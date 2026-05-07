@@ -514,7 +514,7 @@
     function startMode(mode) {
         // TÍNH NĂNG ÔN THI KHÔNG TRỘN ĐỀ, GIỮ NGUYÊN THỨ TỰ
         if (mode === 'midterm') {
-            if (!isMidtermUnlocked) return alert("Giảng viên chưa mở phòng Ôn thi Giữa kì.");
+            if (!isMidtermUnlocked) return alert("Lo học môn khác đi. Học Vật lý ít thôi.");
             if (midtermBank.length === 0) return alert("Chưa có dữ liệu đề Giữa kì.");
             // Giữ nguyên thứ tự nạp lên, cắt tối đa 20 câu
             currentTest = [...midtermBank].slice(0, 20);
