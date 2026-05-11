@@ -287,15 +287,19 @@
     let examMatrix = {}; 
     let globalPracticeData = [], globalExamData = [], globalOnThiData = [];
 
-// BỘ LỌC TOÁN HỌC VÀ XỬ LÝ HÌNH ẢNH
+// BỘ LỌC TOÁN HỌC VÀ BẢO VỆ HÌNH ẢNH
     function cleanMath(text) {
         if (!text) return "";
         let cleanText = text;
         
-        // 1. Xử lý hiển thị Hình ảnh từ Markdown
-        cleanText = cleanText.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="max-w-full max-h-64 object-contain rounded-xl shadow-sm border border-slate-200 my-4 block">');
+        // BƯỚC 1: Tách hình ảnh ra khỏi chuỗi để bảo vệ an toàn
+        let images = [];
+        cleanText = cleanText.replace(/!\[(.*?)\]\((.*?)\)/g, function(match, alt, url) {
+            images.push(`<img src="${url}" alt="${alt}" class="max-w-full max-h-40 object-contain rounded-xl shadow-sm border border-slate-200 mx-2 inline-block">`);
+            return `__IMG_PLACEHOLDER_${images.length - 1}__`;
+        });
 
-        // 2. Xử lý công thức Toán học
+        // BƯỚC 2: Xử lý Toán học thoải mái mà không sợ hỏng link ảnh
         cleanText = cleanText.replace(/\^\(([^)]+)\)/g, '^{$1}');
         cleanText = cleanText.replace(/[·\u22C5]/g, '\\cdot ');
         cleanText = cleanText.replace(/["“”]\s*([^"“”]+)\s*["“”]/g, '\\text{ $1 }');
@@ -303,6 +307,12 @@
         if (/[\^\\⋅εΦλπμ]/.test(cleanText) && !cleanText.includes('$')) {
             cleanText = `$${cleanText}$`;
         }
+
+        // BƯỚC 3: Trả lại hình ảnh HTML vào đúng vị trí cũ
+        images.forEach((imgHTML, index) => {
+            cleanText = cleanText.replace(`__IMG_PLACEHOLDER_${index}__`, imgHTML);
+        });
+
         return cleanText;
     }
 
