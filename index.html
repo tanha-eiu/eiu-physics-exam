@@ -287,35 +287,38 @@
     let examMatrix = {}; 
     let globalPracticeData = [], globalExamData = [], globalOnThiData = [];
 
-// BỘ LỌC TOÁN HỌC VÀ BẢO VỆ HÌNH ẢNH
-    function cleanMath(text) {
+function cleanMath(text) {
         if (!text) return "";
         let cleanText = text;
         
-        // BƯỚC 1: Tách hình ảnh ra khỏi chuỗi để bảo vệ an toàn
-        let images = [];
+        // 1. Tách và bảo vệ tuyệt đối hình ảnh
+        let protectedImages = [];
         cleanText = cleanText.replace(/!\[(.*?)\]\((.*?)\)/g, function(match, alt, url) {
-            images.push(`<img src="${url}" alt="${alt}" class="max-w-full max-h-40 object-contain rounded-xl shadow-sm border border-slate-200 mx-2 inline-block">`);
-            return `__IMG_PLACEHOLDER_${images.length - 1}__`;
+            const imgHTML = `<img src="${url.trim()}" alt="${alt}" class="max-w-full max-h-48 object-contain rounded-xl shadow-md border border-slate-200 my-4 block mx-auto">`;
+            protectedImages.push(imgHTML);
+            return `__PROTECTED_IMG_TOKEN_${protectedImages.length - 1}__`;
         });
 
-        // BƯỚC 2: Xử lý Toán học thoải mái mà không sợ hỏng link ảnh
+        // 2. Xử lý logic Toán học và Vật lý trên phần văn bản còn lại
+        // Chuyển đổi số mũ dạng ^(n) của Word sang LaTeX ^{n}
         cleanText = cleanText.replace(/\^\(([^)]+)\)/g, '^{$1}');
+        // Chuẩn hóa dấu nhân chấm giữa
         cleanText = cleanText.replace(/[·\u22C5]/g, '\\cdot ');
+        // Xử lý các dấu ngoặc kép trong đề bài thành khối văn bản \text{}
         cleanText = cleanText.replace(/["“”]\s*([^"“”]+)\s*["“”]/g, '\\text{ $1 }');
         
+        // Tự động bao bọc bằng dấu $ nếu chứa ký hiệu vật lý mà chưa có dấu $
         if (/[\^\\⋅εΦλπμ]/.test(cleanText) && !cleanText.includes('$')) {
             cleanText = `$${cleanText}$`;
         }
 
-        // BƯỚC 3: Trả lại hình ảnh HTML vào đúng vị trí cũ
-        images.forEach((imgHTML, index) => {
-            cleanText = cleanText.replace(`__IMG_PLACEHOLDER_${index}__`, imgHTML);
+        // 3. Khôi phục hình ảnh về vị trí ban đầu
+        protectedImages.forEach((imgTag, index) => {
+            cleanText = cleanText.replace(`__PROTECTED_IMG_TOKEN_${index}__`, imgTag);
         });
 
         return cleanText;
     }
-
     function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').classList.replace('hidden', 'flex'); }
     function hideLoading() { document.getElementById('loading-overlay').classList.replace('flex', 'hidden'); }
 
