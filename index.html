@@ -287,13 +287,19 @@
     let examMatrix = {}; 
     let globalPracticeData = [], globalExamData = [], globalOnThiData = [];
 
-    // BỘ LỌC TOÁN HỌC
+// BỘ LỌC TOÁN HỌC VÀ XỬ LÝ HÌNH ẢNH
     function cleanMath(text) {
         if (!text) return "";
         let cleanText = text;
+        
+        // 1. Xử lý hiển thị Hình ảnh từ Markdown
+        cleanText = cleanText.replace(/!\[(.*?)\]\((.*?)\)/g, '<img src="$2" alt="$1" class="max-w-full max-h-64 object-contain rounded-xl shadow-sm border border-slate-200 my-4 block">');
+
+        // 2. Xử lý công thức Toán học
         cleanText = cleanText.replace(/\^\(([^)]+)\)/g, '^{$1}');
         cleanText = cleanText.replace(/[·\u22C5]/g, '\\cdot ');
         cleanText = cleanText.replace(/["“”]\s*([^"“”]+)\s*["“”]/g, '\\text{ $1 }');
+        
         if (/[\^\\⋅εΦλπμ]/.test(cleanText) && !cleanText.includes('$')) {
             cleanText = `$${cleanText}$`;
         }
