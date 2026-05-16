@@ -26,13 +26,21 @@
 </head>
 <body class="bg-slate-100 text-slate-900 font-sans no-copy" oncontextmenu="return false;">
 
-<div id="loading-overlay" class="fixed inset-0 bg-white/90 z-[100] hidden flex-col items-center justify-center">
+<div id="loading-overlay" class="fixed inset-0 bg-white/90 z-[100] flex-col items-center justify-center flex">
     <div class="loader mb-4"></div>
-    <h2 class="text-xl font-bold text-blue-700 animate-pulse" id="loading-text">Đang kết nối máy chủ...</h2>
+    <h2 class="text-xl font-bold text-blue-700 animate-pulse" id="loading-text">Đang đồng bộ máy chủ...</h2>
 </div>
 
 <div class="max-w-[1400px] mx-auto p-4 md:p-8">
     <div id="login-screen" class="bg-white rounded-3xl shadow-2xl p-8 max-w-md mx-auto mt-20 border border-slate-200">
+        <div id="announcement-box" class="hidden bg-blue-50/50 border border-blue-100 border-l-4 border-l-blue-500 p-5 mb-6 rounded-r-2xl shadow-inner">
+            <div class="flex items-center justify-between mb-3 border-b border-blue-100 pb-2">
+                <h3 class="font-black text-blue-800 text-xs uppercase tracking-widest flex items-center gap-2">📢 Thông báo</h3>
+                <span id="announcement-time" class="text-[9px] text-slate-500 font-bold bg-white px-2 py-1 rounded-full shadow-sm"></span>
+            </div>
+            <p id="announcement-content" class="text-sm text-slate-700 font-medium leading-relaxed"></p>
+        </div>
+
         <h1 class="text-3xl font-black text-blue-800 text-center mb-2 tracking-tighter">EIU PHYSICS</h1>
         <p class="text-center text-slate-500 mb-8 uppercase tracking-widest text-[10px] font-bold">Hệ thống khảo thí động</p>
         <div class="space-y-4">
@@ -42,7 +50,7 @@
                 <option value="V1">Lớp V1</option>
                 <option value="V2">Lớp V2</option>
             </select>
-            <button onclick="handleLogin()" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-2xl shadow-lg transition active:scale-95">VÀO HỆ THỐNG</button>
+            <button onclick="handleLogin()" id="btn-login" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-2xl shadow-lg transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">VÀO HỆ THỐNG</button>
         </div>
     </div>
 
@@ -103,6 +111,22 @@
                         <input type="checkbox" id="toggle-final-btn" class="sr-only peer">
                         <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
                     </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white p-8 rounded-3xl shadow-md border border-indigo-200">
+            <h3 class="font-black text-xs text-indigo-600 uppercase tracking-widest mb-6">4. Cài đặt Hệ thống Chung</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="bg-indigo-50/30 p-5 rounded-2xl border border-indigo-100">
+                    <label class="block text-xs font-black text-slate-700 mb-2 uppercase tracking-tight">Mã Code xem lại đáp án:</label>
+                    <p class="text-[10px] text-slate-500 mb-3 italic">Áp dụng cho Thi thử, Giữa kì, Cuối kì. Để trống nếu sinh viên được xem tự do.</p>
+                    <input type="text" id="admin-review-code" class="w-full px-4 py-3 border border-indigo-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-mono font-bold text-indigo-700 uppercase" placeholder="VD: EIU2026">
+                </div>
+                <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200">
+                    <label class="block text-xs font-black text-slate-700 mb-2 uppercase tracking-tight">Thông báo trên màn hình Đăng nhập:</label>
+                    <p class="text-[10px] text-slate-500 mb-3 italic">Để trống nếu không có thông báo mới.</p>
+                    <textarea id="admin-announcement" rows="3" class="w-full px-4 py-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="Nhập nội dung thông báo cho sinh viên..."></textarea>
                 </div>
             </div>
         </div>
@@ -214,8 +238,8 @@
                 <div class="p-6 rounded-3xl border-2 border-slate-100 bg-amber-50/30 text-left flex flex-col justify-between">
                     <div>
                         <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-4 text-amber-600 font-black italic">02</div>
-                        <h3 class="font-black text-lg text-amber-900">Thi Thử</h3>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed mb-4">Thi thử Giữa kì / Cuối kì (Tối đa 20 câu - 60 phút - Có chấm điểm).</p>
+                        <h3 class="font-black text-lg text-amber-900">Ôn Thi</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed mb-4">Đề ôn tập Giữa kì / Cuối kì (Tối đa 20 câu - 60 phút - Có chấm điểm).</p>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="startMode('midterm')" class="flex-1 bg-amber-500 text-white text-[10px] font-bold py-2 rounded-lg hover:bg-amber-600 uppercase transition shadow-sm">Giữa kì</button>
@@ -226,8 +250,8 @@
                 <button onclick="startMode('exam')" class="p-6 rounded-3xl border-2 border-slate-100 hover:border-emerald-500 hover:bg-emerald-50 transition text-left flex flex-col justify-between">
                     <div>
                         <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-4 text-emerald-600 font-black italic">03</div>
-                        <h3 class="font-black text-lg text-emerald-900">Ôn Thi</h3>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Mô phỏng kỳ thi thật. 20 câu - 60 phút.</p>
+                        <h3 class="font-black text-lg text-emerald-900">Thi thử</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Mô phỏng kỳ thi thật. Đề ngẫu nhiên 60 phút, chống gian lận.</p>
                     </div>
                 </button>
             </div>
@@ -258,7 +282,7 @@
                 <p id="res-violation-row" class="hidden flex justify-between text-rose-600 font-bold uppercase text-[10px]"><strong>Vi phạm:</strong> <span><span id="res-violations"></span> lần</span></p>
                 <p id="save-status" class="text-center font-black text-blue-600 mt-4 animate-pulse uppercase text-[10px]">ĐANG ĐỒNG BỘ MÁY CHỦ...</p>
             </div>
-            <button onclick="showReview()" class="bg-blue-600 text-white px-6 py-4 rounded-2xl font-black w-full mb-3 shadow-lg hover:bg-blue-700 transition uppercase tracking-widest">Xem lại đáp án</button>
+            <button onclick="showReview()" class="bg-blue-600 text-white px-6 py-4 rounded-2xl font-black w-full mb-3 shadow-lg hover:bg-blue-700 transition uppercase tracking-widest flex justify-center items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M8 1a2 2 0 0 1 2 2v4H6V3a2 2 0 0 1 2-2zm3 6V3a3 3 0 0 0-6 0v4a2 2 0 0 0-2 2v5a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg> Xem lại đáp án</button>
             <button onclick="backToHome()" class="bg-slate-200 text-slate-700 px-6 py-4 rounded-2xl font-black w-full uppercase tracking-widest text-xs hover:bg-slate-300 transition">Quay lại trang chủ</button>
         </div>
     </div>
@@ -277,7 +301,7 @@
     const CONFIG = {
         ADMIN_ID: "admin_eiu",
         ADMIN_PW: "quanly",
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbyqNq1ADuj2mtqEWZoFZp5C5RKG9p7dx0tljt0IKQ4Dxz9_Z_TUfHQezLsAwmC9bDn2MA/exec"
+        GOOGLE_URL: "DÁN_LINK_CỦA_THẦY_VÀO_ĐÂY"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
@@ -286,12 +310,16 @@
     let isExamUnlocked = false, isMidtermUnlocked = false, isFinalUnlocked = false;
     let examMatrix = {}; 
     let globalPracticeData = [], globalExamData = [], globalOnThiData = [];
+    
+    // BIẾN TOÀN CỤC CHO TÍNH NĂNG MỚI
+    let globalReviewCode = "";
+    let globalAnnouncement = "";
 
-function cleanMath(text) {
+    // BỘ LỌC TOÁN HỌC VÀ BẢO VỆ HÌNH ẢNH (Bản chuẩn)
+    function cleanMath(text) {
         if (!text) return "";
         let cleanText = text;
         
-        // 1. Tách và bảo vệ tuyệt đối hình ảnh
         let protectedImages = [];
         cleanText = cleanText.replace(/!\[(.*?)\]\((.*?)\)/g, function(match, alt, url) {
             const imgHTML = `<img src="${url.trim()}" alt="${alt}" class="max-w-full max-h-48 object-contain rounded-xl shadow-md border border-slate-200 my-4 block mx-auto">`;
@@ -299,28 +327,54 @@ function cleanMath(text) {
             return `__PROTECTED_IMG_TOKEN_${protectedImages.length - 1}__`;
         });
 
-        // 2. Xử lý logic Toán học và Vật lý trên phần văn bản còn lại
-        // Chuyển đổi số mũ dạng ^(n) của Word sang LaTeX ^{n}
         cleanText = cleanText.replace(/\^\(([^)]+)\)/g, '^{$1}');
-        // Chuẩn hóa dấu nhân chấm giữa
         cleanText = cleanText.replace(/[·\u22C5]/g, '\\cdot ');
-        // Xử lý các dấu ngoặc kép trong đề bài thành khối văn bản \text{}
         cleanText = cleanText.replace(/["“”]\s*([^"“”]+)\s*["“”]/g, '\\text{ $1 }');
         
-        // Tự động bao bọc bằng dấu $ nếu chứa ký hiệu vật lý mà chưa có dấu $
         if (/[\^\\⋅εΦλπμ]/.test(cleanText) && !cleanText.includes('$')) {
             cleanText = `$${cleanText}$`;
         }
 
-        // 3. Khôi phục hình ảnh về vị trí ban đầu
         protectedImages.forEach((imgTag, index) => {
             cleanText = cleanText.replace(`__PROTECTED_IMG_TOKEN_${index}__`, imgTag);
         });
 
         return cleanText;
     }
+
     function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').classList.replace('hidden', 'flex'); }
     function hideLoading() { document.getElementById('loading-overlay').classList.replace('flex', 'hidden'); }
+
+    // KHỞI CHẠY HỆ THỐNG KHI MỞ TRANG ĐỂ TẢI THÔNG BÁO VÀ DỮ LIỆU
+    window.onload = async function() {
+        showLoading("Đang tải dữ liệu hệ thống...");
+        try {
+            let sysRes = await fetch(CONFIG.GOOGLE_URL + "?action=getSystemData");
+            let sysData = await sysRes.json();
+            
+            questionBank = sysData.questions || [];
+            midtermBank = sysData.midtermBank || [];
+            finalBank = sysData.finalBank || [];
+            isExamUnlocked = sysData.isExamUnlocked === true;
+            isMidtermUnlocked = sysData.isMidtermUnlocked === true;
+            isFinalUnlocked = sysData.isFinalUnlocked === true;
+            examMatrix = sysData.examMatrix || {}; 
+            
+            // Tải Code và Thông báo
+            globalReviewCode = sysData.reviewCode || "";
+            globalAnnouncement = sysData.announcement || "";
+
+            // Nếu có thông báo thì hiển thị lên màn hình đăng nhập
+            if (globalAnnouncement.trim() !== "") {
+                document.getElementById('announcement-box').classList.remove('hidden');
+                document.getElementById('announcement-content').innerHTML = globalAnnouncement.replace(/\n/g, '<br>');
+                let now = new Date();
+                document.getElementById('announcement-time').innerText = now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN');
+            }
+
+        } catch(e) { console.log("Lỗi tải data ban đầu"); }
+        hideLoading();
+    }
 
     // 1. ĐĂNG NHẬP
     async function handleLogin() {
@@ -330,22 +384,10 @@ function cleanMath(text) {
         if (!name || !id) return alert("Vui lòng điền đủ thông tin.");
 
         currentUser = { name, mssv: id, className: cls, loginTime: new Date().toLocaleString('vi-VN') };
-        
-        showLoading("Đang kết nối máy chủ...");
-        try {
-            let sysRes = await fetch(CONFIG.GOOGLE_URL + "?action=getSystemData");
-            let sysData = await sysRes.json();
-            
-            questionBank = sysData.questions || [];
-            midtermBank = sysData.midtermBank || [];
-            finalBank = sysData.finalBank || [];
-            
-            isExamUnlocked = sysData.isExamUnlocked === true;
-            isMidtermUnlocked = sysData.isMidtermUnlocked === true;
-            isFinalUnlocked = sysData.isFinalUnlocked === true;
-            examMatrix = sysData.examMatrix || {}; 
 
-            if (id.toLowerCase() === CONFIG.ADMIN_ID && name.toLowerCase() === CONFIG.ADMIN_PW) {
+        if (id.toLowerCase() === CONFIG.ADMIN_ID && name.toLowerCase() === CONFIG.ADMIN_PW) {
+            showLoading("Đang tải dữ liệu Quản trị viên...");
+            try {
                 let dashRes = await fetch(CONFIG.GOOGLE_URL + "?action=getAdminData");
                 let dashData = await dashRes.json();
                 
@@ -362,17 +404,21 @@ function cleanMath(text) {
                 document.getElementById('midterm-status').innerText = `(${midtermBank.length})`;
                 document.getElementById('final-status').innerText = `(${finalBank.length})`;
                 
+                // Hiển thị code và thông báo cũ lên ô nhập liệu cho Admin
+                document.getElementById('admin-review-code').value = globalReviewCode;
+                document.getElementById('admin-announcement').value = globalAnnouncement;
+                
                 updateAdminUI();
                 renderDashboards(globalPracticeData, globalExamData, globalOnThiData);
-            } else {
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('mode-screen').classList.remove('hidden');
-                document.getElementById('student-welcome').innerText = `Học môn Vật lý ít thôi ${name} ơi`;
-                document.getElementById('student-class').innerText = `Lớp: ${cls}`;
-                updateStudentChapterSelect();
-            }
-        } catch(e) { alert("Lỗi kết nối máy chủ. Thầy hãy kiểm tra link App Script."); }
-        hideLoading();
+            } catch(e) { alert("Lỗi kết nối máy chủ. Thầy hãy kiểm tra link App Script."); }
+            hideLoading();
+        } else {
+            document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('mode-screen').classList.remove('hidden');
+            document.getElementById('student-welcome').innerText = `Chào bạn, ${name}`;
+            document.getElementById('student-class').innerText = `Lớp học phần: ${cls}`;
+            updateStudentChapterSelect();
+        }
     }
 
     // 2. ĐỌC FILE ĐỀ VÀO CÁC KHO
@@ -464,7 +510,6 @@ function cleanMath(text) {
             matrix.innerHTML += `<div class="flex items-center gap-4 bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm"><span class="flex-1 text-[11px] font-bold truncate">${ch} (Kho: ${num} câu)</span><input type="number" data-ch="${ch}" class="matrix-input w-16 p-1 text-center rounded-lg border border-slate-200 font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none" value="${currentMatrixValue}" min="0" max="${num}"></div>`;
         });
         
-        // Hiển thị danh sách câu hỏi trong ngân hàng chính
         questionBank.forEach((q, i) => {
             qList.innerHTML += `<div class="p-4 bg-white rounded-xl text-sm border flex justify-between items-start gap-4 shadow-sm overflow-hidden"><div class="flex-1 overflow-x-auto math-block-overflow"><span class="font-black text-blue-600 bg-blue-50 px-2 py-1 rounded mb-2 inline-block text-xs">[${q.chapter}]</span> <br><span class="font-medium text-slate-800"><span class="text-blue-700 font-bold">Câu ${i+1}:</span> ${q.question}</span></div><button onclick="deleteQuestion(${i})" class="text-rose-500 font-bold uppercase text-[9px] min-w-[40px] bg-rose-50 px-2 py-1 rounded hover:bg-rose-500 hover:text-white transition">Xóa</button></div>`;
         });
@@ -482,6 +527,7 @@ function cleanMath(text) {
         examMatrix = tempMatrix;
 
         showLoading("Đang lưu cấu hình và đề thi lên Google Sheets...");
+        
         const payload = { 
             action: "syncAdmin", 
             questions: questionBank, 
@@ -490,7 +536,9 @@ function cleanMath(text) {
             isExamUnlocked: document.getElementById('toggle-exam-btn').checked,
             isMidtermUnlocked: document.getElementById('toggle-midterm-btn').checked,
             isFinalUnlocked: document.getElementById('toggle-final-btn').checked,
-            examMatrix: examMatrix 
+            examMatrix: examMatrix,
+            reviewCode: document.getElementById('admin-review-code').value.trim(), // Lấy mã code
+            announcement: document.getElementById('admin-announcement').value.trim() // Lấy thông báo
         };
         
         try { 
@@ -531,18 +579,15 @@ function cleanMath(text) {
     }
 
     function startMode(mode) {
-        // TÍNH NĂNG ÔN THI KHÔNG TRỘN ĐỀ, GIỮ NGUYÊN THỨ TỰ
         if (mode === 'midterm') {
-            if (!isMidtermUnlocked) return alert("Lo học môn khác đi. Học Vật lý ít thôi.");
+            if (!isMidtermUnlocked) return alert("Giảng viên chưa mở phòng Ôn thi Giữa kì.");
             if (midtermBank.length === 0) return alert("Chưa có dữ liệu đề Giữa kì.");
-            // Giữ nguyên thứ tự nạp lên, cắt tối đa 20 câu
             currentTest = [...midtermBank].slice(0, 20);
             startQuiz('midterm');
         }
         else if (mode === 'final') {
             if (!isFinalUnlocked) return alert("Giảng viên chưa mở phòng Ôn thi Cuối kì.");
             if (finalBank.length === 0) return alert("Chưa có dữ liệu đề Cuối kì.");
-            // Giữ nguyên thứ tự nạp lên, cắt tối đa 20 câu
             currentTest = [...finalBank].slice(0, 20);
             startQuiz('final');
         }
@@ -650,7 +695,17 @@ function cleanMath(text) {
         });
     }
 
+    // TÍNH NĂNG MỚI: BẢO MẬT MÃ CODE KHI XEM LẠI ĐÁP ÁN
     function showReview() {
+        // Áp dụng bảo vệ bằng mã Code cho Thi thử, Giữa kì, Cuối kì (nếu giảng viên có cài đặt mã)
+        if ((testMode === 'exam' || testMode === 'midterm' || testMode === 'final') && globalReviewCode.trim() !== "") {
+            const userInput = prompt("🔒 BÀI THI ĐƯỢC BẢO MẬT\nVui lòng nhập mã code do Giảng viên cung cấp để xem lại đáp án:");
+            if (userInput !== globalReviewCode.trim()) {
+                alert("❌ Mã code không chính xác! Thầy/cô chưa cho phép xem đáp án bài thi này.");
+                return; // Ngăn không cho chạy tiếp đoạn code bên dưới
+            }
+        }
+
         document.getElementById('result-screen').classList.add('hidden');
         document.getElementById('review-screen').classList.remove('hidden');
         const container = document.getElementById('review-container'); container.innerHTML = '';
@@ -668,7 +723,7 @@ function cleanMath(text) {
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
-    // 4. RENDER 3 DASHBOARD TÁCH BIỆT
+    // 4. RENDER DASHBOARD
     function renderDashboards(practiceData, examData, onThiData) {
         const pTable = document.getElementById('practice-table');
         const eTable = document.getElementById('exam-table');
@@ -681,34 +736,13 @@ function cleanMath(text) {
         document.getElementById('onthi-count').innerText = `${onThiData.length} lượt`;
 
         practiceData.slice().reverse().forEach(row => {
-            pTable.innerHTML += `<tr>
-                <td class="p-4 text-[10px] font-mono">${row[0]}</td>
-                <td class="p-4 font-bold text-slate-700">${row[1]}</td>
-                <td class="p-4">${row[2]}</td>
-                <td class="p-4 font-black text-blue-600 text-[10px]">${row[3]}</td>
-                <td class="p-4 font-black">${row[4]}</td>
-            </tr>`;
+            pTable.innerHTML += `<tr><td class="p-4 text-[10px] font-mono">${row[0]}</td><td class="p-4 font-bold text-slate-700">${row[1]}</td><td class="p-4">${row[2]}</td><td class="p-4 font-black text-blue-600 text-[10px]">${row[3]}</td><td class="p-4 font-black">${row[4]}</td></tr>`;
         });
         examData.slice().reverse().forEach(row => {
-            eTable.innerHTML += `<tr>
-                <td class="p-4 text-[10px] font-mono">${row[0]}</td>
-                <td class="p-4 font-bold text-blue-900">${row[1]}</td>
-                <td class="p-4">${row[2]}</td>
-                <td class="p-4 font-black text-emerald-600 text-[10px]">${row[3]}</td>
-                <td class="p-4 font-black text-blue-700">${row[4]}</td>
-                <td class="p-4 text-center font-bold text-rose-500">${row[6]}</td>
-            </tr>`;
+            eTable.innerHTML += `<tr><td class="p-4 text-[10px] font-mono">${row[0]}</td><td class="p-4 font-bold text-blue-900">${row[1]}</td><td class="p-4">${row[2]}</td><td class="p-4 font-black text-emerald-600 text-[10px]">${row[3]}</td><td class="p-4 font-black text-blue-700">${row[4]}</td><td class="p-4 text-center font-bold text-rose-500">${row[6]}</td></tr>`;
         });
         onThiData.slice().reverse().forEach(row => {
-            oTable.innerHTML += `<tr>
-                <td class="p-4 text-[10px] font-mono">${row[0]}</td>
-                <td class="p-4 font-bold text-amber-900">${row[1]}</td>
-                <td class="p-4">${row[2]}</td>
-                <td class="p-4 font-black text-emerald-600 text-[10px]">${row[3]}</td>
-                <td class="p-4 font-black text-blue-700">${row[4]}</td>
-                <td class="p-4 text-center font-bold text-rose-500">${row[6]}</td>
-                <td class="p-4 font-black text-amber-600 text-[10px] uppercase text-right">${row[7] || "N/A"}</td>
-            </tr>`;
+            oTable.innerHTML += `<tr><td class="p-4 text-[10px] font-mono">${row[0]}</td><td class="p-4 font-bold text-amber-900">${row[1]}</td><td class="p-4">${row[2]}</td><td class="p-4 font-black text-emerald-600 text-[10px]">${row[3]}</td><td class="p-4 font-black text-blue-700">${row[4]}</td><td class="p-4 text-center font-bold text-rose-500">${row[6]}</td><td class="p-4 font-black text-amber-600 text-[10px] uppercase text-right">${row[7] || "N/A"}</td></tr>`;
         });
     }
 
