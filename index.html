@@ -32,25 +32,33 @@
 </div>
 
 <div class="max-w-[1400px] mx-auto p-4 md:p-8">
-    <div id="login-screen" class="bg-white rounded-3xl shadow-2xl p-8 max-w-md mx-auto mt-20 border border-slate-200">
-        <div id="announcement-box" class="hidden bg-blue-50/50 border border-blue-100 border-l-4 border-l-blue-500 p-5 mb-6 rounded-r-2xl shadow-inner">
-            <div class="flex items-center justify-between mb-3 border-b border-blue-100 pb-2">
-                <h3 class="font-black text-blue-800 text-xs uppercase tracking-widest flex items-center gap-2">📢 Thông báo</h3>
-                <span id="announcement-time" class="text-[9px] text-slate-500 font-bold bg-white px-2 py-1 rounded-full shadow-sm"></span>
+    <div id="login-screen" class="max-w-5xl mx-auto mt-20 flex flex-col md:flex-row gap-8 justify-center items-stretch transition-all duration-500">
+        
+        <div id="announcement-box" class="hidden md:w-1/2 bg-white rounded-3xl shadow-xl p-8 border border-slate-200 flex-col relative overflow-hidden">
+            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10"></div>
+            
+            <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
+                <h3 class="font-black text-blue-800 text-sm uppercase tracking-widest flex items-center gap-2">📢 Thông báo</h3>
+                <span id="announcement-time" class="text-[10px] text-slate-500 font-bold bg-slate-50 px-3 py-1 rounded-full border border-slate-100"></span>
             </div>
-            <p id="announcement-content" class="text-sm text-slate-700 font-medium leading-relaxed"></p>
+            
+            <div class="overflow-y-auto custom-scrollbar flex-1 max-h-[250px] pr-4">
+                <p id="announcement-content" class="text-sm text-slate-700 font-medium leading-relaxed"></p>
+            </div>
         </div>
 
-        <h1 class="text-3xl font-black text-blue-800 text-center mb-2 tracking-tighter">EIU PHYSICS</h1>
-        <p class="text-center text-slate-500 mb-8 uppercase tracking-widest text-[10px] font-bold">Hệ thống khảo thí động</p>
-        <div class="space-y-4">
-            <input type="text" id="login-name" class="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Họ và Tên">
-            <input type="text" id="login-id" class="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="MSSV">
-            <select id="login-class" class="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-slate-700">
-                <option value="V1">Lớp V1</option>
-                <option value="V2">Lớp V2</option>
-            </select>
-            <button onclick="handleLogin()" id="btn-login" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-2xl shadow-lg transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">VÀO HỆ THỐNG</button>
+        <div class="w-full md:w-1/2 max-w-md bg-white rounded-3xl shadow-2xl p-8 border border-slate-200">
+            <h1 class="text-3xl font-black text-blue-800 text-center mb-2 tracking-tighter">EIU PHYSICS</h1>
+            <p class="text-center text-slate-500 mb-8 uppercase tracking-widest text-[10px] font-bold">Hệ thống khảo thí động</p>
+            <div class="space-y-4">
+                <input type="text" id="login-name" class="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Họ và Tên">
+                <input type="text" id="login-id" class="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="MSSV">
+                <select id="login-class" class="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-slate-700">
+                    <option value="V1">Lớp V1</option>
+                    <option value="V2">Lớp V2</option>
+                </select>
+                <button onclick="handleLogin()" id="btn-login" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-2xl shadow-lg transition active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">VÀO HỆ THỐNG</button>
+            </div>
         </div>
     </div>
 
@@ -345,7 +353,7 @@
     function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').classList.replace('hidden', 'flex'); }
     function hideLoading() { document.getElementById('loading-overlay').classList.replace('flex', 'hidden'); }
 
-    // KHỞI CHẠY HỆ THỐNG KHI MỞ TRANG ĐỂ TẢI THÔNG BÁO VÀ DỮ LIỆU
+// KHỞI CHẠY HỆ THỐNG KHI MỞ TRANG ĐỂ TẢI THÔNG BÁO VÀ DỮ LIỆU
     window.onload = async function() {
         showLoading("Đang tải dữ liệu hệ thống...");
         try {
@@ -364,9 +372,9 @@
             globalReviewCode = sysData.reviewCode || "";
             globalAnnouncement = sysData.announcement || "";
 
-            // Nếu có thông báo thì hiển thị lên màn hình đăng nhập
+            // Nếu có thông báo thì hiển thị lên màn hình đăng nhập dạng lưới ngang
             if (globalAnnouncement.trim() !== "") {
-                document.getElementById('announcement-box').classList.remove('hidden');
+                document.getElementById('announcement-box').classList.replace('hidden', 'flex');
                 document.getElementById('announcement-content').innerHTML = globalAnnouncement.replace(/\n/g, '<br>');
                 let now = new Date();
                 document.getElementById('announcement-time').innerText = now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN');
