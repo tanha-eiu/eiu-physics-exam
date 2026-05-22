@@ -262,13 +262,16 @@
         <div class="bg-white dark:bg-darkCard p-8 rounded-3xl shadow-xl border border-slate-200 dark:border-darkBorder text-center">
             <div class="flex justify-between items-center mb-6 border-b dark:border-darkBorder pb-4">
                 <div class="text-left"><h2 id="student-welcome" class="text-2xl font-black tracking-tight"></h2><p id="student-class" class="text-blue-600 font-bold uppercase text-[10px] mt-1"></p></div>
-                <button onclick="location.reload()" class="bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 px-4 py-2 rounded-lg font-bold text-[10px] uppercase transition">Đăng xuất</button>
+                <button onclick="location.reload()" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-lg font-bold text-[10px] uppercase hover:bg-rose-500 hover:text-white transition">Đăng xuất</button>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <button onclick="showChapterSelector()" class="p-6 rounded-3xl border-2 border-slate-100 dark:border-darkBorder hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/10 transition text-left">
-                    <h3 class="font-black text-lg text-blue-900 dark:text-blue-400">01. Luyện tập</h3>
-                    <p class="text-xs text-slate-500 mt-2">Ôn tập theo từng chương. Không giới hạn thời gian làm bài.</p>
+                <button onclick="showChapterSelector()" class="p-6 rounded-3xl border-2 border-slate-100 hover:border-blue-500 hover:bg-blue-50 transition text-left flex flex-col justify-between">
+                    <div>
+                        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-4 text-blue-600 font-black italic">01</div>
+                        <h3 class="font-black text-lg text-blue-900">Luyện tập</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Ôn tập theo từng chương. Không giới hạn thời gian.</p>
+                    </div>
                 </button>
                 <div class="p-6 rounded-3xl border-2 border-slate-100 dark:border-darkBorder bg-amber-50/30 dark:bg-amber-900/10 text-left flex flex-col gap-4">
                     <div>
