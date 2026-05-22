@@ -33,15 +33,12 @@
 
 <div class="max-w-[1400px] mx-auto p-4 md:p-8">
     <div id="login-screen" class="max-w-5xl mx-auto mt-20 flex flex-col md:flex-row gap-8 justify-center items-stretch transition-all duration-500">
-        
         <div id="announcement-box" class="hidden md:w-1/2 bg-white rounded-3xl shadow-xl p-8 border border-slate-200 flex-col relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-bl-full -z-10"></div>
-            
             <div class="flex items-center justify-between mb-6 border-b border-slate-100 pb-4">
                 <h3 class="font-black text-blue-800 text-sm uppercase tracking-widest flex items-center gap-2">📢 Thông báo</h3>
                 <span id="announcement-time" class="text-[10px] text-slate-500 font-bold bg-slate-50 px-3 py-1 rounded-full border border-slate-100"></span>
             </div>
-            
             <div class="overflow-y-auto custom-scrollbar flex-1 max-h-[250px] pr-4">
                 <p id="announcement-content" class="text-sm text-slate-700 font-medium leading-relaxed"></p>
             </div>
@@ -52,7 +49,7 @@
             <p class="text-center text-slate-500 mb-8 uppercase tracking-widest text-[10px] font-bold">Hệ thống khảo thí động</p>
             <div class="space-y-4">
                 <input type="text" id="login-name" class="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Họ và Tên">
-                <input type="text" id="login-id" class="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="MSSV">
+                <input type="password" id="login-id" class="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="MSSV">
                 <select id="login-class" class="w-full px-5 py-3 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 bg-white font-medium text-slate-700">
                     <option value="V1">Lớp V1</option>
                     <option value="V2">Lớp V2</option>
@@ -94,7 +91,6 @@
 
             <div class="bg-white p-6 rounded-3xl shadow-md border border-amber-200">
                 <h3 class="font-black text-xs text-amber-600 uppercase tracking-widest mb-4">3. Quản lý Đề Ôn Thi</h3>
-                
                 <div class="flex items-center justify-between mb-3 border-b pb-3">
                     <div>
                         <span class="block font-bold text-xs">Giữa kì <span id="midterm-status" class="text-blue-600 font-black">(0)</span></span>
@@ -246,8 +242,8 @@
                 <div class="p-6 rounded-3xl border-2 border-slate-100 bg-amber-50/30 text-left flex flex-col justify-between">
                     <div>
                         <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-4 text-amber-600 font-black italic">02</div>
-                        <h3 class="font-black text-lg text-amber-900">Ôn Thi</h3>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed mb-4">Đề ôn tập Giữa kì / Cuối kì (Tối đa 20 câu - 60 phút - Có chấm điểm).</p>
+                        <h3 class="font-black text-lg text-amber-900">Thi thử</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed mb-4">Phần thi thử Giữa kì / Cuối kì (Dùng để ôn tập vào giữa và cuối kỳ trên lớp, có tính điểm cộng).</p>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="startMode('midterm')" class="flex-1 bg-amber-500 text-white text-[10px] font-bold py-2 rounded-lg hover:bg-amber-600 uppercase transition shadow-sm">Giữa kì</button>
@@ -258,8 +254,8 @@
                 <button onclick="startMode('exam')" class="p-6 rounded-3xl border-2 border-slate-100 hover:border-emerald-500 hover:bg-emerald-50 transition text-left flex flex-col justify-between">
                     <div>
                         <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-4 text-emerald-600 font-black italic">03</div>
-                        <h3 class="font-black text-lg text-emerald-900">Thi thử</h3>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Mô phỏng kỳ thi thật. Đề ngẫu nhiên 60 phút, chống gian lận.</p>
+                        <h3 class="font-black text-lg text-emerald-900">Ôn thi</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Đề thi gồm 20 câu thực hiện trong 60 phút dành cho sinh viên tự ôn thi giữa kỳ và cuối kỳ tại nhà.</p>
                     </div>
                 </button>
             </div>
@@ -272,10 +268,13 @@
     </div>
 
     <div id="quiz-screen" class="hidden pb-20">
-        <div class="sticky top-4 glass-morphism rounded-3xl shadow-lg p-5 mb-8 flex justify-between items-center z-50 border border-white/50">
-            <div id="timer" class="text-3xl font-black text-rose-600 tabular-nums bg-rose-50 px-5 py-2 rounded-2xl shadow-inner">--:--</div>
-            <div id="violation-box" class="hidden font-black text-rose-500 text-[10px] uppercase bg-white px-3 py-1 rounded-full border border-rose-100">Vi phạm: <span id="violation-count">0</span></div>
-            <button onclick="submitTest()" class="bg-blue-700 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:bg-blue-800 active:scale-95 transition uppercase tracking-widest">Nộp bài</button>
+        <div class="sticky top-4 glass-morphism rounded-3xl shadow-lg p-5 mb-8 z-50 border border-white/50">
+            <div class="flex justify-between items-center">
+                <div id="timer" class="text-3xl font-black text-rose-600 tabular-nums bg-rose-50 px-5 py-2 rounded-2xl shadow-inner">--:--</div>
+                <div id="violation-box" class="hidden font-black text-rose-500 text-[10px] uppercase bg-white px-3 py-1 rounded-full border border-rose-100">Vi phạm: <span id="violation-count">0</span></div>
+                <button onclick="submitTest()" class="bg-blue-700 text-white px-10 py-3 rounded-2xl font-black shadow-lg hover:bg-blue-800 active:scale-95 transition uppercase tracking-widest">Nộp bài</button>
+            </div>
+            <div id="moodle-grid" class="hidden flex-wrap gap-1.5 mt-4 border-t border-slate-200 pt-4 max-h-24 overflow-y-auto custom-scrollbar"></div>
         </div>
         <div id="question-container" class="space-y-6 max-w-4xl mx-auto"></div>
     </div>
@@ -305,7 +304,6 @@
 </div>
 
 <script>
-    // THẦY DÁN LINK WEB APP CỦA GOOGLE APPS SCRIPT VÀO ĐÂY
     const CONFIG = {
         ADMIN_ID: "admin_eiu",
         ADMIN_PW: "quanly",
@@ -319,11 +317,10 @@
     let examMatrix = {}; 
     let globalPracticeData = [], globalExamData = [], globalOnThiData = [];
     
-    // BIẾN TOÀN CỤC CHO TÍNH NĂNG MỚI
     let globalReviewCode = "";
     let globalAnnouncement = "";
+    let globalAnnouncementTime = "";
 
-    // BỘ LỌC TOÁN HỌC VÀ BẢO VỆ HÌNH ẢNH (Bản chuẩn)
     function cleanMath(text) {
         if (!text) return "";
         let cleanText = text;
@@ -353,7 +350,6 @@
     function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').classList.replace('hidden', 'flex'); }
     function hideLoading() { document.getElementById('loading-overlay').classList.replace('flex', 'hidden'); }
 
-// KHỞI CHẠY HỆ THỐNG KHI MỞ TRANG ĐỂ TẢI THÔNG BÁO VÀ DỮ LIỆU
     window.onload = async function() {
         showLoading("Đang tải dữ liệu hệ thống...");
         try {
@@ -368,23 +364,20 @@
             isFinalUnlocked = sysData.isFinalUnlocked === true;
             examMatrix = sysData.examMatrix || {}; 
             
-            // Tải Code và Thông báo
             globalReviewCode = sysData.reviewCode || "";
             globalAnnouncement = sysData.announcement || "";
+            globalAnnouncementTime = sysData.announcementTime || "";
 
-            // Nếu có thông báo thì hiển thị lên màn hình đăng nhập dạng lưới ngang
             if (globalAnnouncement.trim() !== "") {
                 document.getElementById('announcement-box').classList.replace('hidden', 'flex');
                 document.getElementById('announcement-content').innerHTML = globalAnnouncement.replace(/\n/g, '<br>');
-                let now = new Date();
-                document.getElementById('announcement-time').innerText = now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN');
+                document.getElementById('announcement-time').innerText = globalAnnouncementTime;
             }
 
         } catch(e) { console.log("Lỗi tải data ban đầu"); }
         hideLoading();
     }
 
-    // 1. ĐĂNG NHẬP
     async function handleLogin() {
         const name = document.getElementById('login-name').value.trim();
         const id = document.getElementById('login-id').value.trim();
@@ -412,7 +405,6 @@
                 document.getElementById('midterm-status').innerText = `(${midtermBank.length})`;
                 document.getElementById('final-status').innerText = `(${finalBank.length})`;
                 
-                // Hiển thị code và thông báo cũ lên ô nhập liệu cho Admin
                 document.getElementById('admin-review-code').value = globalReviewCode;
                 document.getElementById('admin-announcement').value = globalAnnouncement;
                 
@@ -429,7 +421,6 @@
         }
     }
 
-    // 2. ĐỌC FILE ĐỀ VÀO CÁC KHO
     function handleFileUpload(event, targetBank) {
         const file = event.target.files[0];
         if (!file) return;
@@ -524,7 +515,6 @@
         if (window.MathJax) MathJax.typeset();
     }
 
-    // LƯU TOÀN BỘ CẤU HÌNH LÊN MÁY CHỦ
     async function activateAll() {
         const inputs = document.querySelectorAll('.matrix-input');
         let tempMatrix = {};
@@ -536,6 +526,9 @@
 
         showLoading("Đang lưu cấu hình và đề thi lên Google Sheets...");
         
+        let now = new Date();
+        let savedTime = now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN');
+
         const payload = { 
             action: "syncAdmin", 
             questions: questionBank, 
@@ -545,8 +538,9 @@
             isMidtermUnlocked: document.getElementById('toggle-midterm-btn').checked,
             isFinalUnlocked: document.getElementById('toggle-final-btn').checked,
             examMatrix: examMatrix,
-            reviewCode: document.getElementById('admin-review-code').value.trim(), // Lấy mã code
-            announcement: document.getElementById('admin-announcement').value.trim() // Lấy thông báo
+            reviewCode: document.getElementById('admin-review-code').value.trim(), 
+            announcement: document.getElementById('admin-announcement').value.trim(),
+            announcementTime: savedTime 
         };
         
         try { 
@@ -565,7 +559,6 @@
     }
     async function deleteQuestion(i) { if(confirm("Xóa câu này khỏi ngân hàng chính?")) { questionBank.splice(i, 1); updateAdminUI(); } }
 
-    // 3. LOGIC SINH VIÊN
     function showChapterSelector() {
         if (questionBank.length === 0) return alert("Hệ thống chưa có ngân hàng luyện tập.");
         document.getElementById('chapter-selector').classList.toggle('hidden');
@@ -618,26 +611,11 @@
         }
     }
 
-
-    function renderQuestions() {
-        const container = document.getElementById('question-container'); container.innerHTML = '';
-        currentTest.forEach((q, i) => {
-            const block = document.createElement('div'); block.className = "bg-white p-6 md:p-10 rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden";
-            block.innerHTML = `<h3 class="font-bold text-lg mb-6 text-slate-800 leading-relaxed math-block-overflow"><span class="text-blue-700">Câu ${i+1}:</span> ${q.question}</h3>`;
-            q.options.forEach((opt, oi) => {
-                block.innerHTML += `<label class="block p-4 mb-3 rounded-2xl border-2 border-slate-50 hover:bg-blue-50/50 transition cursor-pointer flex items-center gap-4 math-block-overflow"><input type="radio" name="q${i}" value="${oi}" class="w-5 h-5 accent-blue-600 shrink-0"><span class="text-slate-700 font-medium">${opt}</span></label>`;
-            });
-            container.appendChild(block);
-        });
-        if (window.MathJax) MathJax.typeset();
-        window.scrollTo(0, 0);
-    }
-
-// ---------------------------------------------------
-    // 1. HỆ THỐNG CẢM BIẾN CHỐNG GIAN LẬN ĐA TẦNG
+    // ---------------------------------------------------
+    // CHỨC NĂNG CHỐNG GIAN LẬN ĐA TẦNG
     // ---------------------------------------------------
     let isProcessingViolation = false; 
-    let quizActive = false; // Cờ an toàn tuyệt đối chặn bóng ma sự kiện
+    let quizActive = false; 
 
     function forceFullScreenOnClick() {
         let elem = document.documentElement;
@@ -687,11 +665,7 @@
         setTimeout(() => { isProcessingViolation = false; }, 1000);
     }
 
-    // ---------------------------------------------------
-    // 2. CẬP NHẬT HÀM KHỞI TỘNG BÀI THI
-    // ---------------------------------------------------
     function startQuiz(mode) {
-        // Khởi tạo và dọn dẹp sạch sẽ dữ liệu của các lần thi cũ
         quizActive = false;
         isProcessingViolation = false;
         document.removeEventListener('click', forceFullScreenOnClick);
@@ -714,13 +688,13 @@
             else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
             else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
 
-            document.addEventListener("visibilitychange", handleVisibilityChange);
-            window.addEventListener("blur", handleWindowBlur);
-            document.addEventListener("fullscreenchange", handleFullscreenChange);
-            document.addEventListener("keydown", preventCheatKeys);
-
-            // Bật cờ an toàn sau 1 giây khi màn hình đã phóng to và ổn định
-            setTimeout(() => { quizActive = true; }, 1000);
+            setTimeout(() => {
+                document.addEventListener("visibilitychange", handleVisibilityChange);
+                window.addEventListener("blur", handleWindowBlur);
+                document.addEventListener("fullscreenchange", handleFullscreenChange);
+                document.addEventListener("keydown", preventCheatKeys);
+                quizActive = true; 
+            }, 1000);
 
             timerInterval = setInterval(() => { 
                 t--; let m = Math.floor(t/60), s = t%60; 
@@ -738,11 +712,71 @@
         renderQuestions();
     }
 
-    // ---------------------------------------------------
-    // 3. CẬP NHẬT HÀM NỘP BÀI THI
-    // ---------------------------------------------------
+// 1. CẬP NHẬT HÀM HIỂN THỊ CÂU HỎI VÀ VẼ LƯỚI 5x4
+    function renderQuestions() {
+        const container = document.getElementById('question-container'); 
+        container.innerHTML = '';
+        
+        currentTest.forEach((q, i) => {
+            const block = document.createElement('div'); 
+            block.id = `question-block-${i}`; 
+            block.className = "bg-white p-6 md:p-10 rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden";
+            block.innerHTML = `<h3 class="font-bold text-lg mb-6 text-slate-800 leading-relaxed math-block-overflow"><span class="text-blue-700">Câu ${i+1}:</span> ${q.question}</h3>`;
+            q.options.forEach((opt, oi) => {
+                // Đã chèn sẵn hàm updateGridStatus(i) vào sự kiện onchange
+                block.innerHTML += `<label class="block p-4 mb-3 rounded-2xl border-2 border-slate-50 hover:bg-blue-50/50 transition cursor-pointer flex items-center gap-4 math-block-overflow"><input type="radio" name="q${i}" value="${oi}" onchange="updateGridStatus(${i})" class="w-5 h-5 accent-blue-600 shrink-0"><span class="text-slate-700 font-medium">${opt}</span></label>`;
+            });
+            container.appendChild(block);
+        });
+
+        // KHỞI TẠO LƯỚI MOODLE (CHỈ RIÊNG CHẾ ĐỘ ÔN THI: Giữa kì & Cuối kì)
+        const gridContainer = document.getElementById('moodle-grid');
+        if (testMode === 'midterm' || testMode === 'final') {
+            // Sử dụng CSS Grid: 5 cột (grid-cols-5), tự động ngắt xuống thành 4 hàng cho 20 câu
+            gridContainer.className = "grid grid-cols-5 gap-2 mt-4 border-t border-slate-200 pt-4 max-w-[250px] mx-auto";
+            gridContainer.innerHTML = '';
+            currentTest.forEach((_, i) => {
+                gridContainer.innerHTML += `<button type="button" id="grid-btn-${i}" onclick="scrollToQuestion(${i})" class="w-10 h-10 rounded-xl border border-slate-200 bg-slate-50 text-slate-600 font-bold text-sm flex items-center justify-center hover:bg-blue-50 hover:border-blue-300 transition shadow-sm">${i + 1}</button>`;
+            });
+        } else {
+            gridContainer.className = "hidden";
+            gridContainer.innerHTML = '';
+        }
+
+        if (window.MathJax) MathJax.typeset();
+        window.scrollTo(0, 0);
+    }
+
+    // 2. CẬP NHẬT HÀM ĐỔI MÀU Ô VUÔNG
+    function updateGridStatus(i) {
+        // Chỉ cho phép đổi màu nếu đang ở chế độ Giữa kì hoặc Cuối kì
+        if (testMode !== 'midterm' && testMode !== 'final') return; 
+        
+        const btn = document.getElementById(`grid-btn-${i}`);
+        if (btn) {
+            // Ghi đè toàn bộ thuộc tính thiết kế để chuyển sang màu xanh lá báo hiệu đã làm
+            btn.className = "w-10 h-10 rounded-xl border border-emerald-600 bg-emerald-500 text-white font-bold text-sm flex items-center justify-center transition shadow-inner";
+        }
+    }
+
+    // ĐIỀU HƯỚNG CUỘN TRANG ĐẾN CÂU HỎI ĐƯỢC CHỌN
+    function scrollToQuestion(i) {
+        const el = document.getElementById(`question-block-${i}`);
+        if (el) {
+            const offset = 160; // Tránh bị thanh tiêu đề đè khuất tầm nhìn câu hỏi
+            const bodyRect = document.body.getBoundingClientRect().top;
+            const elementRect = el.getBoundingClientRect().top;
+            const elementPosition = elementRect - bodyRect;
+            const offsetPosition = elementPosition - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+        }
+    }
+
     function submitTest() {
-        // Tắt cờ an toàn ngay lập tức để ngắt toàn bộ cảm biến
         quizActive = false; 
         clearInterval(timerInterval);
         
@@ -792,14 +826,12 @@
         });
     }
 
-    // TÍNH NĂNG MỚI: BẢO MẬT MÃ CODE KHI XEM LẠI ĐÁP ÁN
     function showReview() {
-        // Áp dụng bảo vệ bằng mã Code cho Thi thử, Giữa kì, Cuối kì (nếu giảng viên có cài đặt mã)
         if ((testMode === 'exam' || testMode === 'midterm' || testMode === 'final') && globalReviewCode.trim() !== "") {
             const userInput = prompt("🔒 BÀI THI ĐƯỢC BẢO MẬT\nVui lòng nhập mã code do Giảng viên cung cấp để xem lại đáp án:");
             if (userInput !== globalReviewCode.trim()) {
                 alert("❌ Mã code không chính xác! Thầy/cô chưa cho phép xem đáp án bài thi này.");
-                return; // Ngăn không cho chạy tiếp đoạn code bên dưới
+                return; 
             }
         }
 
@@ -820,7 +852,6 @@
         window.scrollTo({top: 0, behavior: 'smooth'});
     }
 
-    // 4. RENDER DASHBOARD
     function renderDashboards(practiceData, examData, onThiData) {
         const pTable = document.getElementById('practice-table');
         const eTable = document.getElementById('exam-table');
