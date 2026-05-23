@@ -126,30 +126,32 @@
                 </div>
             </div>
 
-            <div class="bg-white dark:bg-darkCard p-6 rounded-3xl shadow-md border border-slate-200 dark:border-darkBorder">
-                <h3 class="font-black text-xs text-slate-400 uppercase tracking-widest mb-4">2. Ma trận Thi thử</h3>
-                <div id="matrix-config" class="space-y-3 max-h-32 overflow-y-auto custom-scrollbar pr-2">
-                    <p class="text-xs text-slate-400 italic">Hãy nạp ngân hàng đề để thiết lập ma trận</p>
-                </div>
-            </div>
-
-            <div class="bg-white dark:bg-darkCard p-6 rounded-3xl shadow-md border border-slate-200 dark:border-darkBorder">
+            <div class="bg-white p-6 rounded-3xl shadow-md border border-amber-200">
                 <h3 class="font-black text-xs text-amber-600 uppercase tracking-widest mb-4">3. Quản lý Đề Ôn Thi</h3>
-                <div class="flex items-center justify-between mb-3 border-b dark:border-darkBorder pb-3">
+                <div class="flex items-center justify-between mb-3 border-b pb-3">
                     <div>
-                        <span class="block font-bold text-xs">Giữa kì <span id="midterm-status" class="text-blue-600">(0)</span></span>
+                        <span class="block font-bold text-xs">Giữa kì <span id="midterm-status" class="text-blue-600 font-black">(0)</span></span>
                         <input type="file" id="midterm-upload" accept=".md, .txt, .docx" class="hidden" onchange="handleFileUpload(event, 'midterm')">
-                        <label for="midterm-upload" class="text-[9px] font-bold text-blue-600 cursor-pointer uppercase">Nạp file</label>
+                        <label for="midterm-upload" class="text-[9px] font-bold text-blue-600 cursor-pointer uppercase hover:underline">Nạp file</label> | 
+                        <button onclick="clearSpecificBank('midterm')" class="text-[9px] font-bold text-rose-500 uppercase hover:underline">Xóa</button>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="toggle-midterm-btn" class="sr-only peer"><div class="w-9 h-5 bg-gray-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div></label>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggle-midterm-btn" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                    </label>
                 </div>
+
                 <div class="flex items-center justify-between">
                     <div>
-                        <span class="block font-bold text-xs">Cuối kì <span id="final-status" class="text-blue-600">(0)</span></span>
+                        <span class="block font-bold text-xs">Cuối kì <span id="final-status" class="text-blue-600 font-black">(0)</span></span>
                         <input type="file" id="final-upload" accept=".md, .txt, .docx" class="hidden" onchange="handleFileUpload(event, 'final')">
-                        <label for="final-upload" class="text-[9px] font-bold text-blue-600 cursor-pointer uppercase">Nạp file</label>
+                        <label for="final-upload" class="text-[9px] font-bold text-blue-600 cursor-pointer uppercase hover:underline">Nạp file</label> | 
+                        <button onclick="clearSpecificBank('final')" class="text-[9px] font-bold text-rose-500 uppercase hover:underline">Xóa</button>
                     </div>
-                    <label class="relative inline-flex items-center cursor-pointer"><input type="checkbox" id="toggle-final-btn" class="sr-only peer"><div class="w-9 h-5 bg-gray-200 dark:bg-slate-700 rounded-full peer peer-checked:bg-emerald-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div></label>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="toggle-final-btn" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                    </label>
                 </div>
             </div>
         </div>
