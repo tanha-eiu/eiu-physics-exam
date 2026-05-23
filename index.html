@@ -692,12 +692,22 @@
 
     function updateAdminUI() {
         const matrix = document.getElementById('matrix-config');
+        const qList = document.getElementById('admin-question-list');
         document.getElementById('admin-bank-status').innerText = questionBank.length;
-        matrix.innerHTML = '';
-        [...new Set(questionBank.map(q => q.chapter))].forEach(ch => {
+        matrix.innerHTML = ''; qList.innerHTML = '';
+        
+        const chs = [...new Set(questionBank.map(q => q.chapter))];
+        chs.forEach(ch => {
             const num = questionBank.filter(q => q.chapter === ch).length;
-            matrix.innerHTML += `<div class="flex items-center gap-4 bg-slate-50 dark:bg-slate-800 p-2 rounded-xl border border-slate-100 dark:border-darkBorder"><span class="flex-1 text-[11px] font-bold truncate">${ch} (${num}c)</span><input type="number" data-ch="${ch}" class="matrix-input w-16 p-1 text-center rounded-lg border border-slate-200 dark:border-darkBorder bg-white dark:bg-slate-700 outline-none" value="${examMatrix[ch] || 0}" min="0"></div>`;
+            const currentMatrixValue = examMatrix[ch] || 0;
+
+            matrix.innerHTML += `<div class="flex items-center gap-4 bg-slate-50 p-2 rounded-xl border border-slate-100 shadow-sm"><span class="flex-1 text-[11px] font-bold truncate">${ch} (Kho: ${num} câu)</span><input type="number" data-ch="${ch}" class="matrix-input w-16 p-1 text-center rounded-lg border border-slate-200 font-bold text-blue-600 focus:ring-2 focus:ring-blue-500 outline-none" value="${currentMatrixValue}" min="0" max="${num}"></div>`;
         });
+        
+        questionBank.forEach((q, i) => {
+            qList.innerHTML += `<div class="p-4 bg-white rounded-xl text-sm border flex justify-between items-start gap-4 shadow-sm overflow-hidden"><div class="flex-1 overflow-x-auto math-block-overflow"><span class="font-black text-blue-600 bg-blue-50 px-2 py-1 rounded mb-2 inline-block text-xs">[${q.chapter}]</span> <br><span class="font-medium text-slate-800"><span class="text-blue-700 font-bold">Câu ${i+1}:</span> ${q.question}</span></div><button onclick="deleteQuestion(${i})" class="text-rose-500 font-bold uppercase text-[9px] min-w-[40px] bg-rose-50 px-2 py-1 rounded hover:bg-rose-500 hover:text-white transition">Xóa</button></div>`;
+        });
+        if (window.MathJax) MathJax.typeset();
     }
 
     function renderDashboards(p, e, o) {
