@@ -116,7 +116,7 @@
             <div class="bg-white dark:bg-darkCard p-6 rounded-3xl shadow-md border border-slate-200 dark:border-darkBorder">
                 <h3 class="font-black text-xs text-slate-400 uppercase tracking-widest mb-4">1. Ngân Hàng Đề & Thi Thử</h3>
                 <input type="file" id="main-upload" accept=".md, .txt, .docx" class="hidden" onchange="handleFileUpload(event, 'main')">
-                <label for="main-upload" class="flex items-center justify-center p-3 mb-4 border-2 border-dashed border-blue-400 bg-blue-50 rounded-xl cursor-pointer hover:bg-blue-100 transition font-bold text-blue-700 text-xs">NẠP NGÂN HÀNG ĐỀ (.md)</label>
+                <label for="main-upload" class="flex items-center justify-center p-3 mb-4 border-2 border-dashed border-blue-400 bg-blue-50 dark:bg-blue-900/10 rounded-xl cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/20 transition font-bold text-blue-700 dark:text-blue-400 text-xs text-center">NẠP NGÂN HÀNG ĐỀ (.md)</label>
                 <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
                     <span class="font-bold text-xs text-slate-600">Trạng thái Thi thử:</span>
                     <label class="relative inline-flex items-center cursor-pointer">
@@ -132,7 +132,6 @@
                     <p class="text-xs text-slate-400 italic">Hãy nạp ngân hàng đề để thiết lập ma trận</p>
                 </div>
             </div>
-
 
             <div class="bg-white p-6 rounded-3xl shadow-md border border-amber-200">
                 <h3 class="font-black text-xs text-amber-600 uppercase tracking-widest mb-4">3. Quản lý Đề Ôn Thi</h3>
@@ -416,32 +415,28 @@
         scrollToQuestion(nextIdx);
     }
 
-    // --- CẢM BIẾN CHỐNG GIAN LẬN ---
-    function forceFullScreenOnClick() {
-        let elem = document.documentElement;
-        if (!document.fullscreenElement) {
-            if (elem.requestFullscreen) elem.requestFullscreen().catch(e => {});
-            else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-        }
-        document.removeEventListener('click', forceFullScreenOnClick);
-    }
-
+// --- CẢM BIẾN CHỐNG GIAN LẬN (BỎ FULLSCREEN, GIỮ BỘ ĐẾM 5 LỖI) ---
     function handleVisibilityChange() {
         if (quizActive && document.visibilityState === 'hidden') triggerViolation("Bạn vừa chuyển tab hoặc thu nhỏ trình duyệt!");
     }
 
-    function handleWindowBlur() { if (quizActive) triggerViolation("Bạn vừa click chuột ra khỏi khu vực làm bài!"); }
-
-    function handleFullscreenChange() { if (quizActive && !document.fullscreenElement) triggerViolation("Bạn không được thoát chế độ Toàn màn hình khi đang thi!"); }
+    function handleWindowBlur() { 
+        if (quizActive) triggerViolation("Bạn vừa click chuột ra khỏi khu vực làm bài!"); 
+    }
 
     function triggerViolation(reason) {
         if (!quizActive || isProcessingViolation) return; 
         isProcessingViolation = true; 
         violations++; 
         document.getElementById('violation-count').innerText = violations;
+        
         alert("⚠️ CẢNH BÁO GIAN LẬN (" + violations + "/5 lần) ⚠️\n\n" + reason);
-        if (violations >= 5) { alert("Bạn đã vi phạm 5 lần. Hệ thống tự động thu bài!"); submitTest(); } 
-        else { document.addEventListener('click', forceFullScreenOnClick); }
+        
+        if (violations >= 5) { 
+            alert("Bạn đã vi phạm 5 lần. Hệ thống tự động thu bài!"); 
+            submitTest(); 
+        }
+        
         setTimeout(() => { isProcessingViolation = false; }, 1000);
     }
 
@@ -532,7 +527,7 @@
     }
 
     // --- CORE LOGIC LÀM BÀI ---
-    function startMode(mode) {
+function startMode(mode) {
         if (mode === 'midterm' && !isMidtermUnlocked) return alert("Phòng thi chưa mở.");
         if (mode === 'final' && !isFinalUnlocked) return alert("Phòng thi chưa mở.");
         if (mode === 'exam' && !isExamUnlocked) return alert("Phòng thi chưa mở.");
@@ -550,11 +545,12 @@
         startQuiz(mode);
     }
 
-    function startQuiz(mode) {
+function startQuiz(mode) {
         quizActive = false; isProcessingViolation = false;
         testMode = mode; violations = 0; 
         document.getElementById('violation-count').innerText = "0"; 
         studentAnswers = [];
+        
         document.getElementById('mode-screen').classList.add('hidden');
         document.getElementById('quiz-screen').classList.remove('hidden');
         startTime = Date.now();
@@ -562,14 +558,14 @@
         if (mode !== 'practice') {
             document.getElementById('violation-box').classList.remove('hidden');
             let t = 3600; 
-            let elem = document.documentElement;
-            if (elem.requestFullscreen) elem.requestFullscreen().catch(e => {});
+            
+            // Kích hoạt cảm biến gian lận (chuyển tab, mất tiêu điểm) sau 1 giây
             setTimeout(() => {
                 document.addEventListener("visibilitychange", handleVisibilityChange);
                 window.addEventListener("blur", handleWindowBlur);
-                document.addEventListener("fullscreenchange", handleFullscreenChange);
                 quizActive = true; 
             }, 1000);
+            
             timerInterval = setInterval(() => { 
                 t--; let m = Math.floor(t/60), s = t%60; 
                 document.getElementById('timer').innerText = `${m}:${s<10?'0'+s:s}`; 
@@ -584,7 +580,6 @@
         }
         renderQuestions();
     }
-
     function renderQuestions() {
         const container = document.getElementById('question-container'); container.innerHTML = '';
         currentTest.forEach((q, i) => {
@@ -624,12 +619,13 @@
         if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 180, behavior: 'smooth' });
     }
 
-    function submitTest() {
-        quizActive = false; clearInterval(timerInterval);
+function submitTest() {
+        quizActive = false; 
+        clearInterval(timerInterval);
+        
+        // Gỡ bỏ các cảm biến chống gian lận
         document.removeEventListener("visibilitychange", handleVisibilityChange);
         window.removeEventListener("blur", handleWindowBlur);
-        document.removeEventListener("fullscreenchange", handleFullscreenChange);
-        if (document.fullscreenElement) document.exitFullscreen().catch(e => {});
 
         let score = 0; studentAnswers = [];
         currentTest.forEach((q, i) => {
@@ -638,6 +634,7 @@
             if (ans === q.correct) score++;
             studentAnswers.push(ans);
         });
+        
         const totalSec = Math.floor((Date.now()-startTime)/1000);
         const dur = `${Math.floor(totalSec/60)}p ${totalSec%60}s`;
         
@@ -646,7 +643,11 @@
         document.getElementById('final-score').innerText = `${score}/${currentTest.length}`;
         document.getElementById('res-id').innerText = currentUser.mssv;
         document.getElementById('res-time').innerText = dur;
-        if (testMode !== 'practice') { document.getElementById('res-violation-row').classList.remove('hidden'); document.getElementById('res-violations').innerText = violations; }
+        
+        if (testMode !== 'practice') { 
+            document.getElementById('res-violation-row').classList.remove('hidden'); 
+            document.getElementById('res-violations').innerText = violations; 
+        }
         
         saveData(score, dur);
     }
@@ -712,7 +713,6 @@
         });
         if (window.MathJax) MathJax.typeset();
     }
-
     function renderDashboards(p, e, o) {
         const pt = document.getElementById('practice-table'), et = document.getElementById('exam-table'), ot = document.getElementById('onthi-table');
         pt.innerHTML = ''; et.innerHTML = ''; ot.innerHTML = '';
