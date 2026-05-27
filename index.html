@@ -190,7 +190,12 @@
             <div id="admin-question-list" class="p-6 space-y-4 max-h-96 overflow-y-auto custom-scrollbar"></div>
         </div>
 
-        <div class="flex justify-end mt-8">
+        <div class="flex justify-end mt-8 gap-4">
+            <select id="type-filter" onchange="applyFilter()" class="px-5 py-2 rounded-xl border border-slate-200 dark:border-darkBorder font-bold text-amber-700 dark:text-amber-400 bg-white dark:bg-slate-800 shadow-sm outline-none">
+                <option value="ALL">Tất cả loại đề</option>
+                <option value="midterm">Đề Giữa kì</option>
+                <option value="final">Đề Cuối kì</option>
+            </select>
             <select id="class-filter" onchange="applyFilter()" class="px-5 py-2 rounded-xl border border-slate-200 dark:border-darkBorder font-bold text-blue-700 dark:text-blue-400 bg-white dark:bg-slate-800 shadow-sm outline-none">
                 <option value="ALL">Tất cả các lớp</option>
                 <option value="V1">Lớp V1</option>
@@ -670,24 +675,19 @@ function submitTest() {
 
     // --- LOGIC YÊU CẦU MÃ CODE MỚI ---
     function showReview() {
-        // Chỉ yêu cầu nhập passcode nếu là chế độ Giữa kì (midterm) hoặc Cuối kì (final)
-        if ((testMode === 'midterm' || testMode === 'final') && globalReviewCode.trim() !== "") {
-            const userInput = prompt("🔒 BÀI THI ĐƯỢC BẢO MẬT\nVui lòng nhập mã code do Giảng viên cung cấp để xem lại đáp án:");
-            if (userInput !== globalReviewCode.trim()) {
-                alert("❌ Mã code không chính xác! Thầy/cô chưa cho phép xem đáp án bài thi này.");
-                return; 
+        if ((testMode === 'midterm' || testMode === 'final') && globalReviewCode && globalReviewCode.trim() !== "") {
+            if (prompt("🔒 BÀI THI ĐƯỢC BẢO MẬT\nVui lòng nhập mã code do Giảng viên cung cấp để xem lại đáp án:") !== globalReviewCode.trim()) {
+                return alert("❌ Mã code không chính xác! Thầy/cô chưa cho phép xem đáp án bài thi này.");
             }
         }
-        
-        document.getElementById('result-screen').classList.add('hidden');
-        document.getElementById('review-screen').classList.remove('hidden');
+        document.getElementById('result-screen').classList.add('hidden'); document.getElementById('review-screen').classList.remove('hidden');
         const c = document.getElementById('review-container'); c.innerHTML = '';
         currentTest.forEach((q, i) => {
             const b = document.createElement('div'); b.className = "bg-white dark:bg-darkCard p-8 rounded-[2.5rem] shadow-sm border border-slate-200 dark:border-darkBorder";
-            let h = `<h3 class="font-bold mb-8 math-block-overflow"><span class="text-blue-700 dark:text-blue-400">Câu ${i+1}:</span> ${q.question}</h3>`;
+            let h = `<h3 class="font-bold mb-8 math-block-overflow"><span class="text-blue-700 dark:text-blue-400">Câu ${i+1}:</span> ${cleanMath(q.question)}</h3>`;
             q.options.forEach((opt, oi) => {
                 let style = (oi === q.correct) ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-500' : (oi === studentAnswers[i] ? 'bg-rose-50 dark:bg-rose-900/20 border-rose-500' : 'bg-slate-50 dark:bg-slate-800 opacity-40');
-                h += `<div class="p-4 mb-3 rounded-2xl border-2 ${style} text-sm flex gap-3">${oi === q.correct ? '✅' : (oi === studentAnswers[i] ? '❌' : '')} ${opt}</div>`;
+                h += `<div class="p-4 mb-3 rounded-2xl border-2 ${style} text-sm flex gap-3">${oi === q.correct ? '✅' : (oi === studentAnswers[i] ? '❌' : '')} ${cleanMath(opt)}</div>`;
             });
             b.innerHTML = h; c.appendChild(b);
         });
@@ -713,32 +713,127 @@ function submitTest() {
         });
         if (window.MathJax) MathJax.typeset();
     }
-    function renderDashboards(p, e, o) {
-        const pt = document.getElementById('practice-table'), et = document.getElementById('exam-table'), ot = document.getElementById('onthi-table');
-        pt.innerHTML = ''; et.innerHTML = ''; ot.innerHTML = '';
-        p.slice().reverse().forEach(r => pt.innerHTML += `<tr class="border-b dark:border-darkBorder"><td class="p-4 text-[10px]">${r[0]}</td><td class="p-4 font-bold">${r[1]}</td><td class="p-4">${r[2]}</td><td class="p-4">${r[3]}</td><td class="p-4 font-black">${r[4]}</td></tr>`);
-        e.slice().reverse().forEach(r => et.innerHTML += `<tr class="border-b dark:border-darkBorder"><td class="p-4 text-[10px]">${r[0]}</td><td class="p-4 font-bold">${r[1]}</td><td class="p-4">${r[2]}</td><td class="p-4 font-black text-emerald-600">${r[3]}</td><td class="p-4 font-black text-blue-700">${r[4]}</td><td class="p-4 text-center font-bold text-rose-500">${r[6]}</td></tr>`);
-        o.slice().reverse().forEach(r => ot.innerHTML += `<tr class="border-b dark:border-darkBorder"><td class="p-4 text-[10px]">${r[0]}</td><td class="p-4 font-bold">${r[1]}</td><td class="p-4">${r[2]}</td><td class="p-4 font-black text-emerald-600">${r[3]}</td><td class="p-4 font-black text-blue-700">${r[4]}</td><td class="p-4 text-center font-bold text-rose-500">${r[6]}</td><td class="p-4 font-black text-right">${r[7] || ""}</td></tr>`);
-    }
+    function renderDashboards(practiceData, examData, onThiData) {
+        const pTable = document.getElementById('practice-table');
+        const eTable = document.getElementById('exam-table');
+        const oTable = document.getElementById('onthi-table');
+        
+        pTable.innerHTML = ''; eTable.innerHTML = ''; oTable.innerHTML = '';
+        
+        document.getElementById('prac-count').innerText = `${practiceData.length} lượt`;
+        document.getElementById('exam-count').innerText = `${examData.length} lượt`;
+        document.getElementById('onthi-count').innerText = `${onThiData.length} lượt`;
 
-    function showChapterSelector() { if (questionBank.length === 0) return alert("Trống."); document.getElementById('chapter-selector').classList.toggle('hidden'); }
-    function updateStudentChapterSelect() {
-        const c = document.getElementById('practice-chapters'); c.innerHTML = '';
-        [...new Set(questionBank.map(q => q.chapter))].forEach(ch => {
-            const b = document.createElement('button');
-            b.className = "px-6 py-2 bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-400 border border-blue-100 dark:border-darkBorder hover:bg-blue-600 hover:text-white rounded-xl text-[11px] font-bold transition uppercase";
-            b.innerText = ch; b.onclick = () => { currentTest = [...questionBank.filter(q => q.chapter === ch)].sort(() => 0.5-Math.random()).slice(0, 30); startQuiz('practice'); };
-            c.appendChild(b);
+        practiceData.slice().reverse().forEach(row => {
+            pTable.innerHTML += `<tr>
+                <td class="p-4 text-[10px] font-mono">${row[0]}</td>
+                <td class="p-4 font-bold text-slate-700">${row[1]}</td>
+                <td class="p-4">${row[2]}</td>
+                <td class="p-4 font-black text-blue-600 text-[10px]">${row[3]}</td>
+                <td class="p-4 font-black">${row[4]}</td>
+            </tr>`;
+        });
+        examData.slice().reverse().forEach(row => {
+            eTable.innerHTML += `<tr>
+                <td class="p-4 text-[10px] font-mono">${row[0]}</td>
+                <td class="p-4 font-bold text-blue-900">${row[1]}</td>
+                <td class="p-4">${row[2]}</td>
+                <td class="p-4 font-black text-emerald-600 text-[10px]">${row[3]}</td>
+                <td class="p-4 font-black text-blue-700">${row[4]}</td>
+                <td class="p-4 text-center font-bold text-rose-500">${row[6]}</td>
+            </tr>`;
+        });
+        onThiData.slice().reverse().forEach(row => {
+            oTable.innerHTML += `<tr>
+                <td class="p-4 text-[10px] font-mono">${row[0]}</td>
+                <td class="p-4 font-bold text-amber-900">${row[1]}</td>
+                <td class="p-4">${row[2]}</td>
+                <td class="p-4 font-black text-emerald-600 text-[10px]">${row[3]}</td>
+                <td class="p-4 font-black text-blue-700">${row[4]}</td>
+                <td class="p-4 text-center font-bold text-rose-500">${row[6]}</td>
+                <td class="p-4 font-black text-amber-600 text-[10px] uppercase text-right">${row[7] || "N/A"}</td>
+            </tr>`;
         });
     }
 
-    function handleFileUpload(event, target) {
-        const f = event.target.files[0]; if (!f) return;
+function handleFileUpload(event, targetBank) {
+        const fileInput = event.target;
+        const f = fileInput.files[0]; 
+        if (!f) return;
+        
         if (f.name.endsWith('.docx')) {
-            const r = new FileReader(); r.onload = (e) => mammoth.extractRawText({arrayBuffer: e.target.result}).then(res => processRawText(res.value, target)); r.readAsArrayBuffer(f);
+            const r = new FileReader(); 
+            r.onload = (e) => {
+                mammoth.extractRawText({arrayBuffer: e.target.result}).then(res => {
+                    processRawText(res.value, targetBank);
+                    fileInput.value = ''; 
+                });
+            };
+            r.readAsArrayBuffer(f);
         } else {
-            const r = new FileReader(); r.onload = (e) => processRawText(e.target.result, target); r.readAsText(f);
+            const r = new FileReader(); 
+            r.onload = (e) => {
+                processRawText(e.target.result, targetBank);
+                fileInput.value = ''; 
+            };
+            r.readAsText(f);
         }
+    }
+
+    function processRawText(text, targetBank) {
+        const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        let curCh = "Chương 1: Mặc định", curQ = null, newBank = [], inChapterHeader = false;
+        lines.forEach(line => {
+            let cleanLine = line.replace(/^\*\*/, '').replace(/\*\*$/, '').trim();
+            if (cleanLine.match(/^PHẦN/i)) return; 
+            if (cleanLine.match(/^CHƯƠNG/i)) { curCh = cleanLine; inChapterHeader = true; return; }
+            if (inChapterHeader && !cleanLine.match(/^Câu\s*\d+[\.\:]?\s*/i) && !cleanLine.match(/^[A-D][\.\)]/i)) { curCh += " " + cleanLine; return; }
+            if (cleanLine.match(/^Câu\s*\d+[\.\:]?\s*/i)) {
+                inChapterHeader = false; if (curQ) newBank.push(curQ);
+                curQ = { chapter: curCh, question: cleanLine.replace(/^Câu\s*\d+[\.\:]?\s*/i, '').trim(), options: [], correct: null };
+            } else if (cleanLine.match(/^[A-D][\.\)]/i) && curQ) {
+                let optPref = cleanLine.match(/^[A-D][\.\)]/i)[0];
+                curQ.options.push(optPref + ' ' + cleanLine.substring(optPref.length).trim());
+            } else if (cleanLine.match(/^Đáp án/i) && curQ) {
+                let m = cleanLine.match(/[A-D]/i); if(m) curQ.correct = ['A', 'B', 'C', 'D'].indexOf(m[0].toUpperCase());
+            } else if (curQ && curQ.options.length === 0) { curQ.question += " " + cleanLine; }
+        });
+        if (curQ) newBank.push(curQ);
+
+        if (targetBank === 'main') { questionBank = questionBank.concat(newBank); updateAdminUI(); alert(`Đã nạp ${newBank.length} câu.`); } 
+        else if (targetBank === 'midterm') { midtermBank = newBank; document.getElementById('midterm-status').innerText = `(${midtermBank.length})`; alert(`Đã nạp ${newBank.length} câu.`); } 
+        else if (targetBank === 'final') { finalBank = newBank; document.getElementById('final-status').innerText = `(${finalBank.length})`; alert(`Đã nạp ${newBank.length} câu.`); }
+    }
+    function applyFilter() {
+        const fClass = document.getElementById('class-filter').value;
+        const fType = document.getElementById('type-filter').value;
+
+        // Lọc bảng Luyện tập và Thi thử theo lớp
+        const filteredP = fClass === "ALL" ? globalPracticeData : globalPracticeData.filter(r => r[3] && r[3].toString().trim() === fClass);
+        const filteredE = fClass === "ALL" ? globalExamData : globalExamData.filter(r => r[3] && r[3].toString().trim() === fClass);
+        
+        // Lọc kép cho bảng Ôn thi (Theo lớp và theo Loại đề)
+        let filteredO = globalOnThiData;
+        
+        if (fClass !== "ALL") {
+            filteredO = filteredO.filter(r => r[3] && r[3].toString().trim() === fClass);
+        }
+        
+        if (fType !== "ALL") {
+            // Chuyển đổi giá trị tiếng Anh từ giao diện HTML sang tiếng Việt tương ứng trên Google Sheets
+            const targetType = fType === "midterm" ? "giữa kì" : "cuối kì";
+            
+            filteredO = filteredO.filter(r => {
+                // Bỏ qua nếu dòng dữ liệu trên Google Sheets không có cột phân loại đề
+                if (!r[7]) return false; 
+                
+                // Chuẩn hóa dữ liệu về chữ thường để so sánh
+                let typeData = r[7].toString().trim().toLowerCase();
+                return typeData === targetType;
+            });
+        }
+
+        renderDashboards(filteredP, filteredE, filteredO);
     }
 
     function hideReview() { document.getElementById('review-screen').classList.add('hidden'); document.getElementById('result-screen').classList.remove('hidden'); }
