@@ -530,7 +530,26 @@
             updateStudentChapterSelect();
         }
     }
+    // 3. LOGIC SINH VIÊN
+    function showChapterSelector() {
+        if (questionBank.length === 0) return alert("Hệ thống chưa có ngân hàng luyện tập.");
+        document.getElementById('chapter-selector').classList.toggle('hidden');
+    }
 
+    function updateStudentChapterSelect() {
+        const container = document.getElementById('practice-chapters');
+        const chs = [...new Set(questionBank.map(q => q.chapter))];
+        container.innerHTML = '';
+        chs.forEach(ch => {
+            const btn = document.createElement('button');
+            btn.className = "px-6 py-2 bg-blue-50 text-blue-800 border border-blue-100 hover:bg-blue-600 hover:text-white rounded-xl text-[11px] font-bold transition shadow-sm uppercase tracking-tighter text-left";
+            btn.innerText = ch; btn.onclick = () => { 
+                currentTest = [...questionBank.filter(q => q.chapter === ch)].sort(() => 0.5-Math.random()).slice(0, 30); 
+                startQuiz('practice'); 
+            };
+            container.appendChild(btn);
+        });
+    }
     // --- CORE LOGIC LÀM BÀI ---
 function startMode(mode) {
         if (mode === 'midterm' && !isMidtermUnlocked) return alert("Phòng thi chưa mở.");
