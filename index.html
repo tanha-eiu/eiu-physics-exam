@@ -59,6 +59,7 @@
         
         body { transition: background-color 0.3s, color 0.3s; }
         .math-block-overflow { overflow-x: auto; padding-bottom: 5px; }
+        .glass-morphism { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 dark:bg-darkBg dark:text-slate-100 font-sans no-copy" oncontextmenu="return false;">
@@ -857,6 +858,31 @@ function handleFileUpload(event, targetBank) {
 
     function hideReview() { document.getElementById('review-screen').classList.add('hidden'); document.getElementById('result-screen').classList.remove('hidden'); }
     function backToHome() { document.getElementById('result-screen').classList.add('hidden'); document.getElementById('mode-screen').classList.remove('hidden'); }
+    function deleteQuestion(index) {
+        if (!confirm(`Xóa câu hỏi số ${index + 1}?`)) return;
+        questionBank.splice(index, 1);
+        updateAdminUI();
+    }
+
+    function clearBank() {
+        if (!confirm("Xóa toàn bộ ngân hàng đề Thi thử? Hành động này không thể hoàn tác!")) return;
+        questionBank = [];
+        examMatrix = {};
+        updateAdminUI();
+        alert("Đã xóa toàn bộ ngân hàng đề.");
+    }
+    function clearSpecificBank(type) {
+        const label = type === 'midterm' ? 'Giữa kì' : 'Cuối kì';
+        if (!confirm(`Xóa toàn bộ ngân hàng đề ${label}?`)) return;
+        if (type === 'midterm') {
+            midtermBank = [];
+            document.getElementById('midterm-status').innerText = '(0)';
+        } else if (type === 'final') {
+            finalBank = [];
+            document.getElementById('final-status').innerText = '(0)';
+        }
+        alert(`Đã xóa ngân hàng đề ${label}.`);
+    }
 </script>
 </body>
 </html>
