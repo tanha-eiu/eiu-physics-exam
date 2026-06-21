@@ -110,12 +110,8 @@
             <h1 class="text-3xl font-black text-blue-800 dark:text-blue-400 text-center mb-2 tracking-tighter">EIU PHYSICS</h1>
             <p class="text-center text-slate-500 mb-8 uppercase tracking-widest text-[10px] font-bold">Hệ thống khảo thí động</p>
             <div class="space-y-4">
-                <input type="text" id="login-name" class="w-full px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-darkBorder rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Họ và Tên">
-                <input type="password" id="login-id" class="w-full px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-darkBorder rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Mã số sinh viên (Mật khẩu)">
-                <select id="login-class" class="w-full px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-darkBorder rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 font-medium text-slate-700 dark:text-slate-300">
-                    <option value="V1">Lớp V1</option>
-                    <option value="V2">Lớp V2</option>
-                </select>
+                <input type="text" id="login-account" autocomplete="username" class="w-full px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-darkBorder rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Tài khoản">
+                <input type="password" id="login-password" autocomplete="current-password" class="w-full px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-darkBorder rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Mật khẩu">
                 <button onclick="handleLogin()" id="btn-login" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-2xl shadow-lg transition active:scale-95">VÀO HỆ THỐNG</button>
             </div>
         </div>
@@ -278,6 +274,7 @@
                                 <th class="p-4 font-bold uppercase text-[10px]">MSSV</th>
                                 <th class="p-4 font-bold uppercase text-[10px]">Lớp</th>
                                 <th class="p-4 font-bold uppercase text-[10px]">Điểm</th>
+                                <th class="p-4 font-bold uppercase text-[10px]">Chương luyện tập</th>
                             </tr>
                         </thead>
                         <tbody id="practice-table" class="divide-y text-slate-600 dark:text-slate-300 dark:divide-darkBorder"></tbody>
@@ -371,10 +368,11 @@
     const CONFIG = {
         ADMIN_ID: "admin_eiu",
         ADMIN_PW: "quanly",
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbyqNq1ADuj2mtqEWZoFZp5C5RKG9p7dx0tljt0IKQ4Dxz9_Z_TUfHQezLsAwmC9bDn2MA/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbwyw6hGbUhYeJgZRu0-rwktD6M8BeCIYCMVSY9LGc1JQ7pwCpVyQ-aI0knscx5ArdHewA/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
+    let currentPracticeChapter = "";
     let currentTest = [], studentAnswers = [];
     let testMode = '', timerInterval, startTime = 0, violations = 0;
     let isExamUnlocked = false, isMidtermUnlocked = false, isFinalUnlocked = false;
@@ -510,13 +508,12 @@
     }
 
     async function handleLogin() {
-        const name = document.getElementById('login-name').value.trim();
-        const id = document.getElementById('login-id').value.trim();
-        const cls = document.getElementById('login-class').value;
-        if (!name || !id) return alert("Vui lòng điền đủ thông tin.");
-        currentUser = { name, mssv: id, className: cls, loginTime: new Date().toLocaleString('vi-VN') };
+        const account = document.getElementById('login-account').value.trim();
+        const password = document.getElementById('login-password').value.trim();
+        if (!account || !password) return alert("Vui lòng điền đủ Tài khoản và Mật khẩu.");
 
-        if (id.toLowerCase() === CONFIG.ADMIN_ID && name.toLowerCase() === CONFIG.ADMIN_PW) {
+        // --- Đăng nhập Admin (giữ nguyên cơ chế cũ, dùng chung 2 ô account/password) ---
+        if (account.toLowerCase() === CONFIG.ADMIN_ID && password.toLowerCase() === CONFIG.ADMIN_PW) {
             showLoading("Admin Dashboard...");
             try {
                 let dashRes = await fetch(CONFIG.GOOGLE_URL + "?action=getAdminData");
@@ -537,12 +534,32 @@
                 renderDashboards(globalPracticeData, globalExamData, globalOnThiData);
             } catch(e) { alert("Lỗi kết nối Admin."); }
             hideLoading();
-        } else {
+            return;
+        }
+
+        // --- Đăng nhập sinh viên: đối chiếu Tài khoản + Mật khẩu với Google Sheet ---
+        showLoading("Đang xác thực...");
+        try {
+            const res = await fetch(CONFIG.GOOGLE_URL, {
+                method: 'POST',
+                body: JSON.stringify({ action: "login", account, password })
+            });
+            const result = await res.json();
+            hideLoading();
+
+            if (!result.success) {
+                return alert(result.message || "Tài khoản hoặc mật khẩu không đúng.");
+            }
+
+            currentUser = { name: result.name, mssv: result.mssv, className: result.className };
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('mode-screen').classList.remove('hidden');
-            document.getElementById('student-welcome').innerText = `Chào bạn, ${name}`;
-            document.getElementById('student-class').innerText = `Lớp: ${cls}`;
+            document.getElementById('student-welcome').innerText = `Chào bạn, ${result.name}`;
+            document.getElementById('student-class').innerText = `Lớp: ${result.className}`;
             updateStudentChapterSelect();
+        } catch(e) {
+            hideLoading();
+            alert("Lỗi kết nối hệ thống. Vui lòng thử lại.");
         }
     }
     // 3. LOGIC SINH VIÊN
@@ -559,6 +576,7 @@
             const btn = document.createElement('button');
             btn.className = "px-6 py-2 bg-blue-50 text-blue-800 border border-blue-100 hover:bg-blue-600 hover:text-white rounded-xl text-[11px] font-bold transition shadow-sm uppercase tracking-tighter text-left";
             btn.innerText = ch; btn.onclick = () => { 
+                currentPracticeChapter = ch;
                 currentTest = [...questionBank.filter(q => q.chapter === ch)].sort(() => 0.5-Math.random()).slice(0, 30); 
                 startQuiz('practice'); 
             };
@@ -703,7 +721,8 @@ function submitTest() {
     }
 
     function saveData(score, dur) {
-        const p = { action: "saveScore", type: testMode, loginTime: currentUser.loginTime, name: currentUser.name, mssv: currentUser.mssv, className: currentUser.className, score: `${score}/${currentTest.length}`, duration: dur, violations };
+        const submitTime = new Date().toLocaleString('vi-VN');
+        const p = { action: "saveScore", type: testMode, submitTime, name: currentUser.name, mssv: currentUser.mssv, className: currentUser.className, score: `${score}/${currentTest.length}`, duration: dur, violations, chapter: testMode === 'practice' ? currentPracticeChapter : "" };
         fetch(CONFIG.GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) }).then(() => { document.getElementById('save-status').innerText = "✅ ĐÃ LƯU"; document.getElementById('save-status').classList.remove('animate-pulse'); });
     }
 
@@ -765,6 +784,7 @@ function submitTest() {
                 <td class="p-4">${row[2]}</td>
                 <td class="p-4 font-black text-blue-600 text-[10px]">${row[3]}</td>
                 <td class="p-4 font-black">${row[4]}</td>
+                <td class="p-4 font-bold text-amber-600 text-[10px] uppercase">${row[6] || "N/A"}</td>
             </tr>`;
         });
         examData.slice().reverse().forEach(row => {
