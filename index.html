@@ -194,6 +194,109 @@
             </div>
         </div>
         
+        <div class="bg-white dark:bg-darkCard p-8 rounded-3xl shadow-md border border-indigo-200 dark:border-darkBorder">
+            <h3 class="font-black text-xs text-indigo-600 uppercase tracking-widest mb-2 flex items-center gap-2"><i class="fa-solid fa-location-dot"></i> 5. Cài đặt Điểm danh (theo lớp)</h3>
+            <p class="text-[10px] text-slate-500 mb-6 italic">Sinh viên chỉ điểm danh được khi đang trong khung giờ và trong bán kính tọa độ trường đã đặt dưới đây.</p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-indigo-50/40 dark:bg-indigo-900/10 p-5 rounded-2xl border border-indigo-100 dark:border-darkBorder">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="font-black text-xs uppercase">Lớp V1</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="att-enable-V1" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                        </label>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mb-2 italic">Khung giờ áp dụng mọi ngày trong tuần, không cần chọn lại theo từng buổi.</p>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giờ bắt đầu</label>
+                    <input type="time" id="att-start-V1" class="w-full px-3 py-2 mb-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giờ kết thúc</label>
+                    <input type="time" id="att-end-V1" class="w-full px-3 py-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none">
+                </div>
+
+                <div class="bg-indigo-50/40 dark:bg-indigo-900/10 p-5 rounded-2xl border border-indigo-100 dark:border-darkBorder">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="font-black text-xs uppercase">Lớp V2</span>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="att-enable-V2" class="sr-only peer">
+                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                        </label>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mb-2 italic">Khung giờ áp dụng mọi ngày trong tuần, không cần chọn lại theo từng buổi.</p>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giờ bắt đầu</label>
+                    <input type="time" id="att-start-V2" class="w-full px-3 py-2 mb-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none">
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giờ kết thúc</label>
+                    <input type="time" id="att-end-V2" class="w-full px-3 py-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none">
+                </div>
+            </div>
+
+            <div class="bg-slate-50 dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-darkBorder mb-4">
+                <span class="block font-black text-xs uppercase mb-3 text-slate-600">Tọa độ & bán kính trường (áp dụng chung cho cả 2 lớp)</span>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Vĩ độ (Lat)</label>
+                        <input type="text" id="att-school-lat" placeholder="VD: 11.0271" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs font-mono outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kinh độ (Lon)</label>
+                        <input type="text" id="att-school-lon" placeholder="VD: 106.6663" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs font-mono outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Bán kính (mét)</label>
+                        <input type="number" id="att-radius" value="300" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs font-mono outline-none">
+                    </div>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-2 italic">Lấy tọa độ: mở Google Maps, bấm giữ đúng vị trí trường → tọa độ hiện ở thanh tìm kiếm.</p>
+            </div>
+
+            <button onclick="saveAttendanceConfig()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 rounded-2xl shadow-md transition uppercase tracking-widest text-xs">Lưu Cài Đặt Điểm Danh</button>
+        </div>
+
+        <div class="bg-white dark:bg-darkCard rounded-3xl shadow-md border border-indigo-200 dark:border-darkBorder p-6">
+            <h3 class="font-black text-xs text-indigo-500 uppercase tracking-widest mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-user-graduate"></i> Xuất dữ liệu điểm danh theo MSSV
+            </h3>
+            <p class="text-[10px] text-slate-400 mb-4 italic">Xuất toàn bộ các buổi đã điểm danh của 1 sinh viên.</p>
+            <div class="flex flex-wrap gap-3 items-end">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">MSSV</label>
+                    <input type="text" id="att-export-mssv" placeholder="VD: 2021601234" class="px-4 py-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 font-bold text-xs outline-none w-52">
+                </div>
+                <button onclick="exportAttendanceByMssv('xlsx')" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                </button>
+                <button onclick="exportAttendanceByMssv('pdf')" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs uppercase shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i> Xuất PDF
+                </button>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-darkCard rounded-3xl shadow-md border border-amber-200 dark:border-darkBorder p-6">
+            <h3 class="font-black text-xs text-amber-600 uppercase tracking-widest mb-1 flex items-center gap-2">
+                <i class="fa-solid fa-calendar-check"></i> Xuất danh sách điểm danh theo Lớp & Ngày
+            </h3>
+            <p class="text-[10px] text-slate-400 mb-4 italic">Chọn lớp và ngày để xem những bạn nào đã điểm danh hôm đó.</p>
+            <div class="flex flex-wrap gap-3 items-end">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lớp</label>
+                    <select id="att-export-class" class="px-4 py-2 rounded-xl border border-amber-200 dark:border-darkBorder bg-white dark:bg-slate-800 font-bold text-xs outline-none">
+                        <option value="V1">Lớp V1</option>
+                        <option value="V2">Lớp V2</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Ngày</label>
+                    <input type="date" id="att-export-date" class="px-4 py-2 rounded-xl border border-amber-200 dark:border-darkBorder bg-white dark:bg-slate-800 font-bold text-xs outline-none">
+                </div>
+                <button onclick="exportAttendanceByClassDate('xlsx')" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-excel"></i> Xuất Excel
+                </button>
+                <button onclick="exportAttendanceByClassDate('pdf')" class="px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs uppercase shadow-md transition flex items-center gap-2">
+                    <i class="fa-solid fa-file-pdf"></i> Xuất PDF
+                </button>
+            </div>
+        </div>
+
         <button onclick="activateAll()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-black py-4 rounded-2xl shadow-lg transition uppercase tracking-widest text-sm">LƯU & KÍCH HOẠT TOÀN BỘ HỆ THỐNG</button>
 
         <div class="bg-white dark:bg-darkCard rounded-3xl shadow-md overflow-hidden border border-slate-200 dark:border-darkBorder mt-6">
@@ -357,6 +460,16 @@
                 <button onclick="location.reload()" class="bg-rose-50 text-rose-600 px-4 py-2 rounded-lg font-bold text-[10px] uppercase hover:bg-rose-500 hover:text-white transition">Đăng xuất</button>
             </div>
             
+            <div id="attendance-panel" class="mb-6 p-5 rounded-3xl border-2 border-dashed border-indigo-200 bg-indigo-50/40 dark:bg-indigo-900/10 dark:border-indigo-800 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="text-left">
+                    <h3 class="font-black text-indigo-800 dark:text-indigo-300 flex items-center gap-2"><i class="fa-solid fa-location-dot"></i> Điểm danh buổi học</h3>
+                    <p id="attendance-status" class="text-xs text-slate-500 mt-1">Bấm nút để điểm danh — hệ thống sẽ kiểm tra vị trí của bạn.</p>
+                </div>
+                <button onclick="doCheckin()" id="btn-checkin" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition active:scale-95 text-sm whitespace-nowrap">
+                    <i class="fa-solid fa-location-crosshairs mr-2"></i>Điểm danh ngay
+                </button>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <button onclick="showChapterSelector()" class="p-6 rounded-3xl border-2 border-slate-100 hover:border-blue-500 hover:bg-blue-50 transition text-left flex flex-col justify-between">
                     <div>
@@ -434,7 +547,7 @@
     const CONFIG = {
         ADMIN_ID: "admin_eiu",
         ADMIN_PW: "quanly",
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbwyw6hGbUhYeJgZRu0-rwktD6M8BeCIYCMVSY9LGc1JQ7pwCpVyQ-aI0knscx5ArdHewA/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbzaCYAJ3l-IkJDEHbxLzFUp7tBgzDYmpBZUsc4H1z0EOTxcVH-v0fXKWCMuEUgLdIJZCg/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
@@ -445,6 +558,7 @@
     let examMatrix = {}; 
     let globalPracticeData = [], globalExamData = [], globalOnThiData = [];
     let globalReviewCode = "", globalAnnouncement = "", globalAnnouncementTime = "";
+    let globalAttendanceConfig = {}, globalAttendanceData = [], globalStudentRoster = [];
     let quizActive = false, isProcessingViolation = false;
 
     // --- DARK MODE LOGIC ---
@@ -563,6 +677,7 @@
             globalReviewCode = sysData.reviewCode || "";
             globalAnnouncement = sysData.announcement || "";
             globalAnnouncementTime = sysData.announcementTime || "";
+            globalAttendanceConfig = sysData.attendance || {};
 
             if (globalAnnouncement.trim() !== "") {
                 document.getElementById('announcement-box').classList.replace('hidden', 'flex');
@@ -587,6 +702,8 @@
                 globalPracticeData = dashData.practice || [];
                 globalExamData = dashData.exam || [];
                 globalOnThiData = dashData.onthi || [];
+                globalAttendanceData = dashData.attendance || [];
+                globalStudentRoster = dashData.roster || [];
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-screen').classList.remove('hidden');
                 document.getElementById('toggle-exam-btn').checked = isExamUnlocked;
@@ -596,6 +713,7 @@
                 document.getElementById('final-status').innerText = `(${finalBank.length})`;
                 document.getElementById('admin-review-code').value = globalReviewCode;
                 document.getElementById('admin-announcement').value = globalAnnouncement;
+                populateAttendanceConfigUI();
                 updateAdminUI();
                 renderDashboards(globalPracticeData, globalExamData, globalOnThiData);
             } catch(e) { alert("Lỗi kết nối Admin."); }
@@ -648,6 +766,62 @@
             };
             container.appendChild(btn);
         });
+    }
+
+    // --- ĐIỂM DANH (xác minh vị trí GPS) ---
+    function doCheckin() {
+        const btn = document.getElementById('btn-checkin');
+        const statusEl = document.getElementById('attendance-status');
+
+        if (!navigator.geolocation) {
+            statusEl.innerText = "Thiết bị/trình duyệt của bạn không hỗ trợ định vị.";
+            statusEl.className = "text-xs text-rose-600 mt-1 font-bold";
+            return;
+        }
+
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang xác định vị trí...`;
+        statusEl.innerText = "Vui lòng cho phép truy cập vị trí khi trình duyệt hỏi.";
+        statusEl.className = "text-xs text-slate-500 mt-1";
+
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude, lon = pos.coords.longitude;
+            try {
+                const res = await fetch(CONFIG.GOOGLE_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: "checkin",
+                        name: currentUser.name,
+                        mssv: currentUser.mssv,
+                        className: currentUser.className,
+                        lat, lon
+                    })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    statusEl.innerText = `✅ ${result.message}`;
+                    statusEl.className = "text-xs text-emerald-600 mt-1 font-bold";
+                    btn.innerHTML = `<i class="fa-solid fa-circle-check mr-2"></i>Đã điểm danh`;
+                } else {
+                    statusEl.innerText = `❌ ${result.message}`;
+                    statusEl.className = "text-xs text-rose-600 mt-1 font-bold";
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-location-crosshairs mr-2"></i>Thử lại`;
+                }
+            } catch (e) {
+                statusEl.innerText = "Lỗi kết nối hệ thống. Vui lòng thử lại.";
+                statusEl.className = "text-xs text-rose-600 mt-1 font-bold";
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-location-crosshairs mr-2"></i>Điểm danh ngay`;
+            }
+        }, (err) => {
+            let msg = "Không lấy được vị trí của bạn.";
+            if (err.code === err.PERMISSION_DENIED) msg = "Bạn cần cho phép quyền truy cập vị trí để điểm danh.";
+            statusEl.innerText = `❌ ${msg}`;
+            statusEl.className = "text-xs text-rose-600 mt-1 font-bold";
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-location-crosshairs mr-2"></i>Thử lại`;
+        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     }
     // --- CORE LOGIC LÀM BÀI ---
 function startMode(mode) {
@@ -783,6 +957,56 @@ function submitTest() {
         let now = new Date();
         const payload = { action: "syncAdmin", questions: questionBank, midtermBank, finalBank, isExamUnlocked: document.getElementById('toggle-exam-btn').checked, isMidtermUnlocked: document.getElementById('toggle-midterm-btn').checked, isFinalUnlocked: document.getElementById('toggle-final-btn').checked, examMatrix, reviewCode: document.getElementById('admin-review-code').value, announcement: document.getElementById('admin-announcement').value, announcementTime: now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN') };
         try { await fetch(CONFIG.GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); alert("Đã lưu!"); } catch(e) { alert("Lỗi mạng."); }
+        hideLoading();
+    }
+
+    // --- ĐIỂM DANH (Admin: cấu hình + xem lịch sử) ---
+    function populateAttendanceConfigUI() {
+        const att = globalAttendanceConfig || {};
+        ['V1', 'V2'].forEach(cls => {
+            const cfg = att[cls];
+            document.getElementById(`att-enable-${cls}`).checked = !!(cfg && cfg.enabled);
+            document.getElementById(`att-start-${cls}`).value = cfg ? (cfg.startTime || "") : "";
+            document.getElementById(`att-end-${cls}`).value = cfg ? (cfg.endTime || "") : "";
+            // Tọa độ & bán kính dùng chung — lấy từ lớp đầu tiên có cấu hình
+            if (cfg && cfg.schoolLat && !document.getElementById('att-school-lat').value) {
+                document.getElementById('att-school-lat').value = cfg.schoolLat;
+                document.getElementById('att-school-lon').value = cfg.schoolLon;
+                document.getElementById('att-radius').value = cfg.radius || 300;
+            }
+        });
+    }
+
+    async function saveAttendanceConfig() {
+        const lat = document.getElementById('att-school-lat').value.trim();
+        const lon = document.getElementById('att-school-lon').value.trim();
+        const radius = parseInt(document.getElementById('att-radius').value) || 300;
+
+        if (!lat || !lon) return alert("Vui lòng nhập đầy đủ tọa độ trường (Vĩ độ, Kinh độ).");
+
+        const attendanceConfig = {};
+        ['V1', 'V2'].forEach(cls => {
+            const enabled = document.getElementById(`att-enable-${cls}`).checked;
+            const startVal = document.getElementById(`att-start-${cls}`).value; // "HH:mm"
+            const endVal = document.getElementById(`att-end-${cls}`).value;     // "HH:mm"
+            attendanceConfig[cls] = {
+                enabled,
+                startTime: startVal, // Giờ cố định, áp dụng mọi ngày trong tuần
+                endTime: endVal,
+                schoolLat: lat,
+                schoolLon: lon,
+                radius
+            };
+        });
+
+        showLoading("Đang lưu cài đặt điểm danh...");
+        try {
+            await fetch(CONFIG.GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "saveAttendanceConfig", attendance: attendanceConfig }) });
+            globalAttendanceConfig = attendanceConfig;
+            alert("Đã lưu cài đặt điểm danh!");
+        } catch(e) {
+            alert("Lỗi mạng khi lưu cài đặt điểm danh.");
+        }
         hideLoading();
     }
 
@@ -1153,6 +1377,162 @@ function registerVietnameseFont(doc) {
                 startY: 32,
                 styles: { fontSize: 8, font: "DejaVuSans" },
                 headStyles: { fillColor: [79, 70, 229], font: "DejaVuSans" }
+            });
+
+            doc.save(`${fileBase}.pdf`);
+        }
+    }
+
+    // --- XUẤT DỮ LIỆU ĐIỂM DANH THEO MSSV (toàn bộ các buổi) ---
+    function parseAttendanceDate(checkinTime) {
+        // checkinTime có dạng "dd/MM/yyyy HH:mm:ss" — trả về "yyyy-MM-dd" để so sánh với input type=date
+        const datePart = (checkinTime || "").split(' ')[0];
+        const [d, m, y] = datePart.split('/');
+        if (!d || !m || !y) return "";
+        return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+    }
+
+    function exportAttendanceByMssv(format) {
+        const mssvInput = document.getElementById('att-export-mssv').value.trim();
+        if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất dữ liệu điểm danh.");
+
+        const target = mssvInput.toLowerCase();
+        const rows = globalAttendanceData
+            .filter(r => r[2] && r[2].toString().trim().toLowerCase() === target)
+            .map(r => {
+                // Xử lý làm đẹp thời gian nếu bị dính chuẩn ISO của Google
+                let timeStr = r[0].toString().includes('T') ? new Date(r[0]).toLocaleString('vi-VN') : r[0];
+                return [timeStr, r[1], r[2], r[3], `${r[4]}m`, r[5]];
+            })
+            .reverse();
+
+        if (rows.length === 0) {
+            return alert("Không tìm thấy lượt điểm danh nào cho MSSV này.");
+        }
+
+        const headers = ["Thời gian điểm danh", "Họ tên", "MSSV", "Lớp", "Khoảng cách", "Tọa độ ghi nhận"];
+        const exportTime = new Date().toLocaleString('vi-VN');
+        const studentName = rows[0][1];
+        const fileBase = `DiemDanh_${mssvInput}_${Date.now()}`;
+
+        if (format === 'xlsx') {
+            const wb = XLSX.utils.book_new();
+            const infoRows = [
+                [`Lịch sử điểm danh - Sinh viên: ${studentName} (MSSV: ${mssvInput})`],
+                [`Thời gian xuất dữ liệu: ${exportTime}`],
+                [`Tổng số buổi đã điểm danh: ${rows.length}`],
+                [`Lưu ý: Khoảng cách là sự sai lệch vị trí điểm danh của SV so với toạ độ mốc do GV chọn ban đầu`],
+                []
+            ];
+            const ws = XLSX.utils.aoa_to_sheet([...infoRows, headers, ...rows]);
+            ws['!cols'] = headers.map(() => ({ wch: 20 }));
+            XLSX.utils.book_append_sheet(wb, ws, "Điểm danh");
+            XLSX.writeFile(wb, `${fileBase}.xlsx`);
+        } else {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape' });
+            registerVietnameseFont(doc);
+
+            doc.setFontSize(14);
+            doc.text(`Lịch sử điểm danh: ${studentName} (MSSV: ${mssvInput})`, 14, 15);
+            doc.setFontSize(9);
+            doc.text(`Thời gian xuất dữ liệu: ${exportTime}`, 14, 22);
+            doc.text(`Tổng số buổi đã điểm danh: ${rows.length}`, 14, 27);
+            doc.text(`Lưu ý: Khoảng cách là sự sai lệch vị trí điểm danh của SV so với toạ độ mốc do GV chọn ban đầu`, 14, 32)
+
+            doc.autoTable({
+                head: [headers],
+                body: rows,
+                startY: 37,
+                styles: { fontSize: 8, font: "DejaVuSans" },
+                headStyles: { fillColor: [99, 102, 241], font: "DejaVuSans" }
+            });
+
+            doc.save(`${fileBase}.pdf`);
+        }
+    }
+
+    // --- XUẤT DANH SÁCH ĐIỂM DANH THEO LỚP & NGÀY (có mặt + vắng) ---
+    function exportAttendanceByClassDate(format) {
+        const cls = document.getElementById('att-export-class').value;
+        const dateInput = document.getElementById('att-export-date').value; // yyyy-MM-dd
+        if (!dateInput) return alert("Vui lòng chọn ngày cần xuất.");
+
+        // Lượt điểm danh khớp đúng lớp + ngày
+        const expectedSessionId = cls + "_" + dateInput;
+        const checkedInRows = globalAttendanceData.filter(r =>
+            r[6] && r[6].toString().trim() === expectedSessionId
+        );
+        const checkedInMssvSet = new Set(checkedInRows.map(r => r[2].toString().trim().toLowerCase()));
+
+        // Toàn bộ sinh viên của lớp này từ danh sách gốc (roster): [MSSV, Họ tên, Lớp]
+        const classRoster = globalStudentRoster.filter(r => r[2] && r[2].toString().trim() === cls);
+
+        if (classRoster.length === 0) {
+            return alert("Không tìm thấy danh sách sinh viên cho lớp này. Hãy kiểm tra sheet DanhSachSV.");
+        }
+
+        const rows = classRoster.map(r => {
+            const mssv = r[0], name = r[1];
+            const att = checkedInRows.find(a => a[2].toString().trim().toLowerCase() === mssv.toString().trim().toLowerCase());
+            
+            // Xử lý làm đẹp thời gian nếu bị dính chuẩn ISO của Google
+            let timeStr = "";
+            if (att) {
+                timeStr = att[0].toString().includes('T') ? new Date(att[0]).toLocaleString('vi-VN') : att[0];
+            }
+
+            return [
+                mssv, name, cls,
+                att ? "Có mặt" : "Vắng",
+                timeStr, // <-- In thời gian đã làm đẹp
+                att ? `${att[4]}m` : ""
+            ];
+        });
+
+        const presentCount = rows.filter(r => r[3] === "Có mặt").length;
+        const headers = ["MSSV", "Họ tên", "Lớp", "Trạng thái", "Thời gian điểm danh", "Khoảng cách"];
+        const exportTime = new Date().toLocaleString('vi-VN');
+        const dateLabel = dateInput.split('-').reverse().join('/');
+        const fileBase = `DiemDanh_${cls}_${dateInput}_${Date.now()}`;
+
+        if (format === 'xlsx') {
+            const wb = XLSX.utils.book_new();
+            const infoRows = [
+                [`Danh sách điểm danh - Lớp ${cls} - Ngày ${dateLabel}`],
+                [`Thời gian xuất dữ liệu: ${exportTime}`],
+                [`Có mặt: ${presentCount}/${rows.length} sinh viên`],
+                [`Lưu ý: Khoảng cách là sự sai lệch vị trí điểm danh của SV so với toạ độ mốc do GV chọn ban đầu`],
+                []
+            ];
+            const ws = XLSX.utils.aoa_to_sheet([...infoRows, headers, ...rows]);
+            ws['!cols'] = headers.map(() => ({ wch: 20 }));
+            XLSX.utils.book_append_sheet(wb, ws, "Điểm danh");
+            XLSX.writeFile(wb, `${fileBase}.xlsx`);
+        } else {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF({ orientation: 'landscape' });
+            registerVietnameseFont(doc);
+
+            doc.setFontSize(14);
+            doc.text(`Danh sách điểm danh - Lớp ${cls} - Ngày ${dateLabel}`, 14, 15);
+            doc.setFontSize(9);
+            doc.text(`Thời gian xuất dữ liệu: ${exportTime}`, 14, 22);
+            doc.text(`Có mặt: ${presentCount}/${rows.length} sinh viên`, 14, 27);
+            doc.text(`Lưu ý: Khoảng cách là sự sai lệch vị trí điểm danh của SV so với toạ độ mốc do GV chọn ban đầu`, 14, 32)           
+
+            doc.autoTable({
+                head: [headers],
+                body: rows,
+                startY: 37,
+                styles: { fontSize: 8, font: "DejaVuSans" },
+                headStyles: { fillColor: [217, 119, 6], font: "DejaVuSans" },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 3) {
+                        if (data.cell.raw === "Vắng") data.cell.styles.textColor = [220, 38, 38];
+                        else if (data.cell.raw === "Có mặt") data.cell.styles.textColor = [5, 150, 105];
+                    }
+                }
             });
 
             doc.save(`${fileBase}.pdf`);
