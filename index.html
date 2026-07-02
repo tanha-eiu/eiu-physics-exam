@@ -195,60 +195,14 @@
         </div>
         
         <div class="bg-white dark:bg-darkCard p-8 rounded-3xl shadow-md border border-indigo-200 dark:border-darkBorder">
-            <h3 class="font-black text-xs text-indigo-600 uppercase tracking-widest mb-2 flex items-center gap-2"><i class="fa-solid fa-location-dot"></i> 5. Cài đặt Điểm danh (theo lớp)</h3>
-            <p class="text-[10px] text-slate-500 mb-6 italic">Sinh viên chỉ điểm danh được khi đang trong khung giờ và trong bán kính tọa độ trường đã đặt dưới đây.</p>
+            <h3 class="font-black text-xs text-indigo-600 uppercase tracking-widest mb-2 flex items-center gap-2"><i class="fa-solid fa-location-dot"></i> 5. Cài đặt Điểm danh (từng buổi)</h3>
+            <p class="text-[10px] text-slate-500 mb-4 italic">Mỗi buổi học có thể ở vị trí khác nhau — tọa độ + khung giờ cài riêng theo từng buổi và từng lớp.</p>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div class="bg-indigo-50/40 dark:bg-indigo-900/10 p-5 rounded-2xl border border-indigo-100 dark:border-darkBorder">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="font-black text-xs uppercase">Lớp V1</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="att-enable-V1" class="sr-only peer">
-                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-                        </label>
-                    </div>
-                    <p class="text-[10px] text-slate-400 mb-2 italic">Khung giờ áp dụng mọi ngày trong tuần, không cần chọn lại theo từng buổi.</p>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giờ bắt đầu</label>
-                    <input type="time" id="att-start-V1" class="w-full px-3 py-2 mb-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giờ kết thúc</label>
-                    <input type="time" id="att-end-V1" class="w-full px-3 py-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none">
-                </div>
+            <div id="att-sessions-list" class="flex flex-col gap-3 mb-4"></div>
 
-                <div class="bg-indigo-50/40 dark:bg-indigo-900/10 p-5 rounded-2xl border border-indigo-100 dark:border-darkBorder">
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="font-black text-xs uppercase">Lớp V2</span>
-                        <label class="relative inline-flex items-center cursor-pointer">
-                            <input type="checkbox" id="att-enable-V2" class="sr-only peer">
-                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
-                        </label>
-                    </div>
-                    <p class="text-[10px] text-slate-400 mb-2 italic">Khung giờ áp dụng mọi ngày trong tuần, không cần chọn lại theo từng buổi.</p>
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giờ bắt đầu</label>
-                    <input type="time" id="att-start-V2" class="w-full px-3 py-2 mb-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none">
-                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giờ kết thúc</label>
-                    <input type="time" id="att-end-V2" class="w-full px-3 py-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none">
-                </div>
-            </div>
-
-            <div class="bg-slate-50 dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-darkBorder mb-4">
-                <span class="block font-black text-xs uppercase mb-3 text-slate-600">Tọa độ & bán kính trường (áp dụng chung cho cả 2 lớp)</span>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Vĩ độ (Lat)</label>
-                        <input type="text" id="att-school-lat" placeholder="VD: 11.0271" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs font-mono outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kinh độ (Lon)</label>
-                        <input type="text" id="att-school-lon" placeholder="VD: 106.6663" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs font-mono outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Bán kính (mét)</label>
-                        <input type="number" id="att-radius" value="300" class="w-full px-3 py-2 rounded-xl border border-slate-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs font-mono outline-none">
-                    </div>
-                </div>
-                <p class="text-[10px] text-slate-400 mt-2 italic">Lấy tọa độ: mở Google Maps, bấm giữ đúng vị trí trường → tọa độ hiện ở thanh tìm kiếm.</p>
-            </div>
-
+            <button onclick="addAttSession()" class="w-full border-2 border-dashed border-indigo-300 text-indigo-500 font-bold text-xs py-3 rounded-2xl hover:bg-indigo-50 transition uppercase tracking-widest mb-4">
+                <i class="fa-solid fa-plus mr-2"></i>Thêm buổi điểm danh
+            </button>
             <button onclick="saveAttendanceConfig()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-black py-3 rounded-2xl shadow-md transition uppercase tracking-widest text-xs">Lưu Cài Đặt Điểm Danh</button>
         </div>
 
@@ -547,7 +501,7 @@
     const CONFIG = {
         ADMIN_ID: "admin_eiu",
         ADMIN_PW: "quanly",
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbzaCYAJ3l-IkJDEHbxLzFUp7tBgzDYmpBZUsc4H1z0EOTxcVH-v0fXKWCMuEUgLdIJZCg/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbzSEHF3uGDFMmWgNd7_p3G1ByT1XdAMC7R0pNgkiNwtAmgV2LwKqKfQMS3iLbfm46Vq4A/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
@@ -961,44 +915,132 @@ function submitTest() {
     }
 
     // --- ĐIỂM DANH (Admin: cấu hình + xem lịch sử) ---
-    function populateAttendanceConfigUI() {
-        const att = globalAttendanceConfig || {};
-        ['V1', 'V2'].forEach(cls => {
-            const cfg = att[cls];
-            document.getElementById(`att-enable-${cls}`).checked = !!(cfg && cfg.enabled);
-            document.getElementById(`att-start-${cls}`).value = cfg ? (cfg.startTime || "") : "";
-            document.getElementById(`att-end-${cls}`).value = cfg ? (cfg.endTime || "") : "";
-            // Tọa độ & bán kính dùng chung — lấy từ lớp đầu tiên có cấu hình
-            if (cfg && cfg.schoolLat && !document.getElementById('att-school-lat').value) {
-                document.getElementById('att-school-lat').value = cfg.schoolLat;
-                document.getElementById('att-school-lon').value = cfg.schoolLon;
-                document.getElementById('att-radius').value = cfg.radius || 300;
-            }
+    // --- ĐIỂM DANH: Cấu hình danh sách buổi (mỗi buổi có lớp, thứ, giờ, tọa độ riêng) ---
+    let attSessions = []; // Mảng các buổi: { className, weekday, startTime, endTime, lat, lon, radius, enabled }
+    const WEEKDAY_LABELS = { '2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật' };
+
+    function renderAttSessionList() {
+        const container = document.getElementById('att-sessions-list');
+        container.innerHTML = '';
+        if (attSessions.length === 0) {
+            container.innerHTML = '<p class="text-xs text-slate-400 italic text-center py-4">Chưa có buổi nào — bấm "Thêm buổi điểm danh" để thêm.</p>';
+            return;
+        }
+        attSessions.forEach((s, idx) => {
+            const wdOpts = Object.entries(WEEKDAY_LABELS).map(([v,l]) =>
+                `<option value="${v}" ${s.weekday===v?'selected':''}>${l}</option>`).join('');
+            container.innerHTML += `
+            <div class="bg-indigo-50/40 dark:bg-indigo-900/10 border border-indigo-100 dark:border-darkBorder rounded-2xl p-4">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <select data-idx="${idx}" data-field="className" onchange="updateAttSession(this)"
+                            class="px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 font-bold text-xs outline-none">
+                            <option value="V1" ${s.className==='V1'?'selected':''}>Lớp V1</option>
+                            <option value="V2" ${s.className==='V2'?'selected':''}>Lớp V2</option>
+                        </select>
+                        <select data-idx="${idx}" data-field="weekday" onchange="updateAttSession(this)"
+                            class="px-3 py-1.5 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 font-bold text-xs outline-none text-indigo-700">
+                            ${wdOpts}
+                        </select>
+                        <span class="text-[10px] text-slate-400 font-mono">#${idx+1}</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" data-idx="${idx}" data-field="enabled" onchange="updateAttSession(this)" class="sr-only peer" ${s.enabled?'checked':''}>
+                            <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                        </label>
+                        <button onclick="removeAttSession(${idx})" class="text-rose-400 hover:text-rose-600 text-xs font-bold px-2 py-1 bg-rose-50 rounded-lg">Xóa</button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giờ bắt đầu</label>
+                        <input type="time" value="${s.startTime||''}" data-idx="${idx}" data-field="startTime" onchange="updateAttSession(this)"
+                            class="w-full px-2 py-1.5 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Giờ kết thúc</label>
+                        <input type="time" value="${s.endTime||''}" data-idx="${idx}" data-field="endTime" onchange="updateAttSession(this)"
+                            class="w-full px-2 py-1.5 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Bán kính (m)</label>
+                        <input type="number" value="${s.radius||300}" data-idx="${idx}" data-field="radius" onchange="updateAttSession(this)"
+                            class="w-full px-2 py-1.5 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs font-mono outline-none">
+                    </div>
+                    <div class="flex items-end">
+                        <button onclick="fillCurrentLocation(${idx})" class="w-full px-2 py-1.5 text-[10px] font-bold bg-emerald-50 text-emerald-700 rounded-xl hover:bg-emerald-600 hover:text-white transition uppercase">
+                            <i class="fa-solid fa-location-crosshairs mr-1"></i>Lấy vị trí
+                        </button>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Vĩ độ (Lat)</label>
+                        <input type="text" value="${s.lat||''}" data-idx="${idx}" data-field="lat" onchange="updateAttSession(this)"
+                            placeholder="VD: 11.0271"
+                            class="w-full px-2 py-1.5 rounded-xl border border-slate-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs font-mono outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Kinh độ (Lon)</label>
+                        <input type="text" value="${s.lon||''}" data-idx="${idx}" data-field="lon" onchange="updateAttSession(this)"
+                            placeholder="VD: 106.6663"
+                            class="w-full px-2 py-1.5 rounded-xl border border-slate-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs font-mono outline-none">
+                    </div>
+                </div>
+                <p class="text-[10px] text-slate-400 mt-2 italic">Bấm "Lấy vị trí" khi đang đứng tại phòng học để tự động điền tọa độ.</p>
+            </div>`;
         });
     }
 
+    function addAttSession() {
+        attSessions.push({ className: 'V1', weekday: '2', startTime: '', endTime: '', lat: '', lon: '', radius: 300, enabled: true });
+        renderAttSessionList();
+    }
+
+    function removeAttSession(idx) {
+        if (!confirm('Xóa buổi điểm danh này?')) return;
+        attSessions.splice(idx, 1);
+        renderAttSessionList();
+    }
+
+    function updateAttSession(el) {
+        const idx = parseInt(el.dataset.idx);
+        const field = el.dataset.field;
+        if (field === 'enabled') attSessions[idx][field] = el.checked;
+        else if (field === 'radius') attSessions[idx][field] = parseInt(el.value) || 300;
+        else attSessions[idx][field] = el.value;
+    }
+
+    function fillCurrentLocation(idx) {
+        if (!navigator.geolocation) return alert("Thiết bị không hỗ trợ định vị.");
+        navigator.geolocation.getCurrentPosition(pos => {
+            attSessions[idx].lat = pos.coords.latitude.toString();
+            attSessions[idx].lon = pos.coords.longitude.toString();
+            renderAttSessionList();
+            alert(`Đã lấy tọa độ: ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`);
+        }, () => alert("Không lấy được vị trí. Hãy tự nhập tọa độ thủ công."), { enableHighAccuracy: true });
+    }
+
+    function populateAttendanceConfigUI() {
+        const att = globalAttendanceConfig || {};
+        if (Array.isArray(att.sessions)) {
+            attSessions = att.sessions.map(s => ({ weekday: '2', ...s })); // đảm bảo có weekday dù là data cũ
+        } else {
+            attSessions = [];
+            ['V1', 'V2'].forEach(cls => {
+                const cfg = att[cls];
+                if (cfg) attSessions.push({ className: cls, weekday: '2', startTime: cfg.startTime || '', endTime: cfg.endTime || '', lat: cfg.schoolLat || '', lon: cfg.schoolLon || '', radius: cfg.radius || 300, enabled: !!cfg.enabled });
+            });
+        }
+        renderAttSessionList();
+    }
+
     async function saveAttendanceConfig() {
-        const lat = document.getElementById('att-school-lat').value.trim();
-        const lon = document.getElementById('att-school-lon').value.trim();
-        const radius = parseInt(document.getElementById('att-radius').value) || 300;
+        const invalid = attSessions.filter(s => s.enabled && (!s.startTime || !s.endTime || !s.lat || !s.lon));
+        if (invalid.length > 0) return alert("Có buổi đang bật nhưng chưa điền đầy đủ giờ và tọa độ. Vui lòng kiểm tra lại.");
 
-        if (!lat || !lon) return alert("Vui lòng nhập đầy đủ tọa độ trường (Vĩ độ, Kinh độ).");
-
-        const attendanceConfig = {};
-        ['V1', 'V2'].forEach(cls => {
-            const enabled = document.getElementById(`att-enable-${cls}`).checked;
-            const startVal = document.getElementById(`att-start-${cls}`).value; // "HH:mm"
-            const endVal = document.getElementById(`att-end-${cls}`).value;     // "HH:mm"
-            attendanceConfig[cls] = {
-                enabled,
-                startTime: startVal, // Giờ cố định, áp dụng mọi ngày trong tuần
-                endTime: endVal,
-                schoolLat: lat,
-                schoolLon: lon,
-                radius
-            };
-        });
-
+        const attendanceConfig = { sessions: attSessions };
         showLoading("Đang lưu cài đặt điểm danh...");
         try {
             await fetch(CONFIG.GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "saveAttendanceConfig", attendance: attendanceConfig }) });
