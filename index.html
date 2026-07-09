@@ -1501,9 +1501,10 @@ function registerVietnameseFont(doc) {
         if (!dateInput) return alert("Vui lòng chọn ngày cần xuất.");
 
         // Lượt điểm danh khớp đúng lớp + ngày
+        // Lượt điểm danh khớp đúng lớp + ngày (Dùng startsWith để bỏ qua phần Giờ ở phía sau mã buổi)
         const expectedSessionId = cls + "_" + dateInput;
         const checkedInRows = globalAttendanceData.filter(r =>
-            r[6] && r[6].toString().trim() === expectedSessionId
+            r[6] && r[6].toString().trim().startsWith(expectedSessionId)
         );
         const checkedInMssvSet = new Set(checkedInRows.map(r => r[2].toString().trim().toLowerCase()));
 
