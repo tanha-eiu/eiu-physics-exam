@@ -192,6 +192,11 @@
                     <textarea id="admin-announcement" rows="3" class="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-darkBorder rounded-xl outline-none text-sm" placeholder="Nội dung thông báo..."></textarea>
                 </div>
             </div>
+            <div class="mt-6 bg-rose-50/40 dark:bg-rose-900/10 p-5 rounded-2xl border border-rose-100 dark:border-darkBorder">
+                <label class="block text-xs font-black mb-2 uppercase tracking-tight text-rose-700">Lời nhắn tự động khi sinh viên báo vắng:</label>
+                <p class="text-[10px] text-slate-500 mb-3 italic">Hộp thoại này sẽ hiện cho sinh viên ngay sau khi gửi báo vắng thành công. Ví dụ: "Đã nhận đơn xin phép của bạn. Vắng quá 20% sẽ bị cấm thi."</p>
+                <textarea id="admin-absence-message" rows="3" class="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-rose-200 dark:border-darkBorder rounded-xl outline-none text-sm" placeholder="Nhập lời nhắn tự động..."></textarea>
+            </div>
         </div>
         
         <div class="bg-white dark:bg-darkCard p-8 rounded-3xl shadow-md border border-indigo-200 dark:border-darkBorder">
@@ -424,6 +429,70 @@
                 </button>
             </div>
 
+            <!-- Panel Báo vắng -->
+            <div class="mb-4 p-5 rounded-3xl border border-rose-200 bg-rose-50/30 dark:bg-rose-900/10 dark:border-rose-900">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-black text-rose-700 dark:text-rose-400 flex items-center gap-2 text-sm"><i class="fa-solid fa-triangle-exclamation"></i> Báo vắng buổi học</h3>
+                        <p class="text-xs text-slate-500 mt-1">Báo trước hoặc trong ngày học. Vắng có phép sẽ được ghi nhận.</p>
+                    </div>
+                    <button onclick="toggleAbsenceForm()" class="text-xs font-bold text-rose-600 border border-rose-300 px-4 py-2 rounded-xl hover:bg-rose-100 transition whitespace-nowrap">Báo vắng</button>
+                </div>
+                <div id="absence-form" class="hidden mt-4 space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Chọn buổi vắng</label>
+                        <select id="absence-session-select" class="w-full px-3 py-2 rounded-xl border border-rose-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none font-bold">
+                            <option value="">-- Đang tải danh sách buổi --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Lý do vắng</label>
+                        <textarea id="absence-reason" rows="3" class="w-full px-3 py-2 rounded-xl border border-rose-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none" placeholder="Nhập lý do vắng..."></textarea>
+                    </div>
+                    <button onclick="submitAbsence()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-2.5 rounded-xl text-xs uppercase transition">
+                        <i class="fa-solid fa-paper-plane mr-2"></i>Gửi báo vắng
+                    </button>
+                </div>
+            </div>
+
+            <!-- Panel Học bù -->
+            <div class="mb-6 p-5 rounded-3xl border border-amber-200 bg-amber-50/30 dark:bg-amber-900/10 dark:border-amber-900">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="font-black text-amber-700 dark:text-amber-400 flex items-center gap-2 text-sm"><i class="fa-solid fa-arrows-rotate"></i> Điểm danh học bù</h3>
+                        <p class="text-xs text-slate-500 mt-1">Đổi ca học trong cùng ngày. Chọn buổi bù phù hợp với lịch của bạn.</p>
+                    </div>
+                    <button onclick="toggleMakeupForm()" class="text-xs font-bold text-amber-600 border border-amber-300 px-4 py-2 rounded-xl hover:bg-amber-100 transition whitespace-nowrap">Học bù</button>
+                </div>
+                <div id="makeup-form" class="hidden mt-4 space-y-3">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Chọn buổi học bù hôm nay</label>
+                        <select id="makeup-session-select" class="w-full px-3 py-2 rounded-xl border border-amber-200 dark:border-darkBorder bg-white dark:bg-slate-800 text-xs outline-none font-bold">
+                            <option value="">-- Đang kiểm tra buổi có sẵn --</option>
+                        </select>
+                    </div>
+                    <p id="makeup-status" class="text-xs text-slate-500 hidden"></p>
+                    <button onclick="doMakeupCheckin()" id="btn-makeup" class="w-full bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-xs uppercase transition">
+                        <i class="fa-solid fa-location-crosshairs mr-2"></i>Điểm danh học bù
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal lời nhắn giảng viên sau khi báo vắng -->
+            <div id="absence-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                <div class="bg-white dark:bg-darkCard rounded-3xl shadow-2xl p-8 max-w-md w-full border border-rose-200">
+                    <div class="text-center mb-4">
+                        <div class="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                            <i class="fa-solid fa-envelope-open-text text-rose-500 text-2xl"></i>
+                        </div>
+                        <h3 class="font-black text-lg text-rose-700">Đã gửi báo vắng!</h3>
+                        <p class="text-xs text-slate-500 mt-1">Lời nhắn từ giảng viên:</p>
+                    </div>
+                    <div id="absence-modal-message" class="bg-rose-50 rounded-2xl p-4 text-sm text-slate-700 leading-relaxed mb-6 dark:bg-rose-900/20 dark:text-slate-300"></div>
+                    <button onclick="closeAbsenceModal()" class="w-full bg-rose-600 hover:bg-rose-700 text-white font-bold py-3 rounded-2xl transition">Đã hiểu</button>
+                </div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <button onclick="showChapterSelector()" class="p-6 rounded-3xl border-2 border-slate-100 hover:border-blue-500 hover:bg-blue-50 transition text-left flex flex-col justify-between">
                     <div>
@@ -501,7 +570,7 @@
     const CONFIG = {
         ADMIN_ID: "admin_eiu",
         ADMIN_PW: "quanly",
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbzSEHF3uGDFMmWgNd7_p3G1ByT1XdAMC7R0pNgkiNwtAmgV2LwKqKfQMS3iLbfm46Vq4A/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbzibsPFV-VqDL31De135SRdcSPNmcYR43LTSMUxbrVRAAJaDyJBykNga1BR1uFotEfxqA/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
@@ -512,7 +581,8 @@
     let examMatrix = {}; 
     let globalPracticeData = [], globalExamData = [], globalOnThiData = [];
     let globalReviewCode = "", globalAnnouncement = "", globalAnnouncementTime = "";
-    let globalAttendanceConfig = {}, globalAttendanceData = [], globalStudentRoster = [];
+    let globalAttendanceConfig = {}, globalAttendanceData = [], globalStudentRoster = [], globalAbsenceData = [];
+    let globalAbsenceMessage = "";
     let quizActive = false, isProcessingViolation = false;
 
     // --- DARK MODE LOGIC ---
@@ -632,6 +702,7 @@
             globalAnnouncement = sysData.announcement || "";
             globalAnnouncementTime = sysData.announcementTime || "";
             globalAttendanceConfig = sysData.attendance || {};
+            globalAbsenceMessage = sysData.absenceMessage || "";
 
             if (globalAnnouncement.trim() !== "") {
                 document.getElementById('announcement-box').classList.replace('hidden', 'flex');
@@ -658,6 +729,7 @@
                 globalOnThiData = dashData.onthi || [];
                 globalAttendanceData = dashData.attendance || [];
                 globalStudentRoster = dashData.roster || [];
+                globalAbsenceData = dashData.absence || [];
                 document.getElementById('login-screen').classList.add('hidden');
                 document.getElementById('admin-screen').classList.remove('hidden');
                 document.getElementById('toggle-exam-btn').checked = isExamUnlocked;
@@ -667,6 +739,7 @@
                 document.getElementById('final-status').innerText = `(${finalBank.length})`;
                 document.getElementById('admin-review-code').value = globalReviewCode;
                 document.getElementById('admin-announcement').value = globalAnnouncement;
+                document.getElementById('admin-absence-message').value = globalAbsenceMessage;
                 populateAttendanceConfigUI();
                 updateAdminUI();
                 renderDashboards(globalPracticeData, globalExamData, globalOnThiData);
@@ -695,6 +768,8 @@
             document.getElementById('student-welcome').innerText = `Chào bạn, ${result.name}`;
             document.getElementById('student-class').innerText = `Lớp: ${result.className}`;
             updateStudentChapterSelect();
+            populateAbsenceSessionSelect();
+            populateMakeupSessionSelect();
         } catch(e) {
             hideLoading();
             alert("Lỗi kết nối hệ thống. Vui lòng thử lại.");
@@ -720,6 +795,161 @@
             };
             container.appendChild(btn);
         });
+    }
+
+    // --- BÁO VẮNG ---
+    function toggleAbsenceForm() {
+        const form = document.getElementById('absence-form');
+        form.classList.toggle('hidden');
+        if (!form.classList.contains('hidden')) populateAbsenceSessionSelect();
+    }
+
+    function populateAbsenceSessionSelect() {
+        const sel = document.getElementById('absence-session-select');
+        if (!sel) return;
+        const sessions = (globalAttendanceConfig.sessions || []).filter(s => s.enabled && s.className === currentUser.className);
+        if (sessions.length === 0) {
+            sel.innerHTML = '<option value="">Chưa có buổi nào được cài đặt</option>';
+            return;
+        }
+        const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
+        sel.innerHTML = sessions.map((s, i) =>
+            `<option value="${i}">${WD[s.weekday]||s.weekday} | ${s.startTime}–${s.endTime} | Lớp ${s.className}</option>`
+        ).join('');
+    }
+
+    async function submitAbsence() {
+        const selEl = document.getElementById('absence-session-select');
+        const reason = document.getElementById('absence-reason').value.trim();
+        if (!selEl.value && selEl.value !== '0') return alert("Vui lòng chọn buổi vắng.");
+        if (!reason) return alert("Vui lòng nhập lý do vắng.");
+
+        const sessions = (globalAttendanceConfig.sessions || []).filter(s => s.enabled && s.className === currentUser.className);
+        const sess = sessions[parseInt(selEl.value)];
+        if (!sess) return alert("Không tìm thấy buổi học. Vui lòng thử lại.");
+
+        const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
+        const sessionLabel = `${WD[sess.weekday]||sess.weekday} | ${sess.startTime}–${sess.endTime}`;
+
+        try {
+            await fetch(CONFIG.GOOGLE_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: "saveAbsence",
+                    name: currentUser.name,
+                    mssv: currentUser.mssv,
+                    className: currentUser.className,
+                    sessionLabel,
+                    weekday: sess.weekday,
+                    sessionStart: sess.startTime,
+                    reason
+                })
+            });
+            // Hiện modal lời nhắn giảng viên
+            const msg = globalAbsenceMessage || "Đã nhận đơn xin phép của bạn. Cảm ơn bạn đã thông báo trước.";
+            document.getElementById('absence-modal-message').innerHTML = msg.replace(/\n/g, '<br>');
+            document.getElementById('absence-modal').classList.remove('hidden');
+            document.getElementById('absence-form').classList.add('hidden');
+            document.getElementById('absence-reason').value = '';
+        } catch(e) {
+            alert("Lỗi kết nối. Vui lòng thử lại.");
+        }
+    }
+
+    function closeAbsenceModal() {
+        document.getElementById('absence-modal').classList.add('hidden');
+    }
+
+    // --- HỌC BÙ ---
+    function toggleMakeupForm() {
+        const form = document.getElementById('makeup-form');
+        form.classList.toggle('hidden');
+        if (!form.classList.contains('hidden')) populateMakeupSessionSelect();
+    }
+
+    function populateMakeupSessionSelect() {
+        const sel = document.getElementById('makeup-session-select');
+        if (!sel) return;
+        // Lấy các buổi của các lớp KHÁC với lớp của sinh viên (cùng môn = cùng trong attSessions)
+        // và đang có buổi học hôm nay (kiểm tra thứ hôm nay phía client để lọc trước)
+        const todayWd = ['0','2','3','4','5','6','7'][new Date().getDay()]; // JS: 0=CN,1=T2...6=T7
+        const makeupSessions = (globalAttendanceConfig.sessions || []).filter(s =>
+            s.enabled && s.className !== currentUser.className && s.weekday === todayWd
+        );
+        const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
+        if (makeupSessions.length === 0) {
+            sel.innerHTML = '<option value="">Không có buổi học bù nào hôm nay</option>';
+            document.getElementById('btn-makeup').disabled = true;
+            return;
+        }
+        document.getElementById('btn-makeup').disabled = false;
+        sel.innerHTML = makeupSessions.map((s, i) =>
+            `<option value="${i}">${WD[s.weekday]||s.weekday} | ${s.startTime}–${s.endTime} | Lớp ${s.className}</option>`
+        ).join('');
+    }
+
+    function doMakeupCheckin() {
+        const sel = document.getElementById('makeup-session-select');
+        const statusEl = document.getElementById('makeup-status');
+        const btn = document.getElementById('btn-makeup');
+        if (!sel.value && sel.value !== '0') return alert("Vui lòng chọn buổi học bù.");
+
+        const todayWd = ['0','2','3','4','5','6','7'][new Date().getDay()];
+        const makeupSessions = (globalAttendanceConfig.sessions || []).filter(s =>
+            s.enabled && s.className !== currentUser.className && s.weekday === todayWd
+        );
+        const sess = makeupSessions[parseInt(sel.value)];
+        if (!sess) return alert("Không tìm thấy buổi học bù. Vui lòng thử lại.");
+
+        if (!navigator.geolocation) return alert("Thiết bị không hỗ trợ định vị.");
+
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang xác định vị trí...`;
+        statusEl.classList.remove('hidden');
+        statusEl.innerText = "Vui lòng cho phép truy cập vị trí khi trình duyệt hỏi.";
+
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const lat = pos.coords.latitude, lon = pos.coords.longitude;
+            try {
+                const res = await fetch(CONFIG.GOOGLE_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: "makeup_checkin",
+                        name: currentUser.name,
+                        mssv: currentUser.mssv,
+                        originalClass: currentUser.className,
+                        makeupClass: sess.className,
+                        makeupSessionStart: sess.startTime,
+                        makeupSessionEnd: sess.endTime,
+                        makeupLat: sess.lat,
+                        makeupLon: sess.lon,
+                        makeupRadius: sess.radius || 300,
+                        lat, lon
+                    })
+                });
+                const result = await res.json();
+                if (result.success) {
+                    statusEl.innerText = `✅ ${result.message}`;
+                    statusEl.className = "text-xs text-emerald-600 font-bold";
+                    btn.innerHTML = `<i class="fa-solid fa-circle-check mr-2"></i>Đã điểm danh bù`;
+                } else {
+                    statusEl.innerText = `❌ ${result.message}`;
+                    statusEl.className = "text-xs text-rose-600 font-bold";
+                    btn.disabled = false;
+                    btn.innerHTML = `<i class="fa-solid fa-location-crosshairs mr-2"></i>Điểm danh học bù`;
+                }
+            } catch(e) {
+                statusEl.innerText = "Lỗi kết nối. Vui lòng thử lại.";
+                statusEl.className = "text-xs text-rose-600 font-bold";
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-location-crosshairs mr-2"></i>Điểm danh học bù`;
+            }
+        }, () => {
+            statusEl.innerText = "❌ Không lấy được vị trí. Vui lòng cho phép truy cập vị trí.";
+            statusEl.className = "text-xs text-rose-600 font-bold";
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-location-crosshairs mr-2"></i>Điểm danh học bù`;
+        }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     }
 
     // --- ĐIỂM DANH (xác minh vị trí GPS) ---
@@ -909,7 +1139,7 @@ function submitTest() {
         examMatrix = tempMatrix;
         showLoading("Đang lưu...");
         let now = new Date();
-        const payload = { action: "syncAdmin", questions: questionBank, midtermBank, finalBank, isExamUnlocked: document.getElementById('toggle-exam-btn').checked, isMidtermUnlocked: document.getElementById('toggle-midterm-btn').checked, isFinalUnlocked: document.getElementById('toggle-final-btn').checked, examMatrix, reviewCode: document.getElementById('admin-review-code').value, announcement: document.getElementById('admin-announcement').value, announcementTime: now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN') };
+        const payload = { action: "syncAdmin", questions: questionBank, midtermBank, finalBank, isExamUnlocked: document.getElementById('toggle-exam-btn').checked, isMidtermUnlocked: document.getElementById('toggle-midterm-btn').checked, isFinalUnlocked: document.getElementById('toggle-final-btn').checked, examMatrix, reviewCode: document.getElementById('admin-review-code').value, announcement: document.getElementById('admin-announcement').value, announcementTime: now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN'), absenceMessage: document.getElementById('admin-absence-message').value };
         try { await fetch(CONFIG.GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); alert("Đã lưu!"); } catch(e) { alert("Lỗi mạng."); }
         hideLoading();
     }
@@ -1439,20 +1669,34 @@ function registerVietnameseFont(doc) {
         if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất dữ liệu điểm danh.");
 
         const target = mssvInput.toLowerCase();
-        const rows = globalAttendanceData
+
+        // Các lượt điểm danh (kể cả học bù)
+        const attendRows = globalAttendanceData
             .filter(r => r[2] && r[2].toString().trim().toLowerCase() === target)
             .map(r => {
-                // Xử lý làm đẹp thời gian nếu bị dính chuẩn ISO của Google
-                let timeStr = r[0].toString().includes('T') ? new Date(r[0]).toLocaleString('vi-VN') : r[0];
-                return [timeStr, r[1], r[2], r[3], `${r[4]}m`, r[5]];
-            })
-            .reverse();
+                const timeStr = r[0].toString().includes('T') ? new Date(r[0]).toLocaleString('vi-VN') : r[0];
+                const distM = parseInt(r[4]) || 0;
+                const distStr = distM >= 500 ? `${(distM/1000).toFixed(2)}km` : `${distM}m`;
+                const note = r[7] || ""; // Cột 8: ghi chú học bù
+                const isMakeup = note.includes('Học bù');
+                return [timeStr, r[1], r[2], r[3], isMakeup ? "Có mặt (học bù)" : "Có mặt", distStr, r[5], note];
+            });
+
+        // Các lượt báo vắng: [Thời gian(0), Tên(1), MSSV(2), Lớp(3), Buổi vắng(4), Lý do(5)]
+        const absRows = (globalAbsenceData || [])
+            .filter(r => r[2] && r[2].toString().trim().toLowerCase() === target)
+            .map(r => {
+                const timeStr = r[0].toString().includes('T') ? new Date(r[0]).toLocaleString('vi-VN') : r[0];
+                return [timeStr, r[1], r[2], r[3], "Vắng có phép", "", "", `Buổi: ${r[4]} — Lý do: ${r[5]}`];
+            });
+
+        const rows = [...attendRows, ...absRows].reverse();
 
         if (rows.length === 0) {
-            return alert("Không tìm thấy lượt điểm danh nào cho MSSV này.");
+            return alert("Không tìm thấy dữ liệu điểm danh hoặc báo vắng nào cho MSSV này.");
         }
 
-        const headers = ["Thời gian điểm danh", "Họ tên", "MSSV", "Lớp", "Khoảng cách", "Tọa độ ghi nhận"];
+        const headers = ["Thời gian", "Họ tên", "MSSV", "Lớp", "Trạng thái", "Khoảng cách", "Tọa độ", "Ghi chú / Lý do"];
         const exportTime = new Date().toLocaleString('vi-VN');
         const studentName = rows[0][1];
         const fileBase = `DiemDanh_${mssvInput}_${Date.now()}`;
@@ -1462,79 +1706,89 @@ function registerVietnameseFont(doc) {
             const infoRows = [
                 [`Lịch sử điểm danh - Sinh viên: ${studentName} (MSSV: ${mssvInput})`],
                 [`Thời gian xuất dữ liệu: ${exportTime}`],
-                [`Tổng số buổi đã điểm danh: ${rows.length}`],
-                [`Lưu ý: Khoảng cách là sự sai lệch vị trí điểm danh của SV so với toạ độ mốc do GV chọn ban đầu`],
+                [`Tổng lượt có mặt: ${attendRows.length} | Lượt báo vắng có phép: ${absRows.length}`],
                 []
             ];
             const ws = XLSX.utils.aoa_to_sheet([...infoRows, headers, ...rows]);
-            ws['!cols'] = headers.map(() => ({ wch: 20 }));
+            ws['!cols'] = headers.map(() => ({ wch: 22 }));
             XLSX.utils.book_append_sheet(wb, ws, "Điểm danh");
             XLSX.writeFile(wb, `${fileBase}.xlsx`);
         } else {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'landscape' });
             registerVietnameseFont(doc);
-
             doc.setFontSize(14);
             doc.text(`Lịch sử điểm danh: ${studentName} (MSSV: ${mssvInput})`, 14, 15);
             doc.setFontSize(9);
-            doc.text(`Thời gian xuất dữ liệu: ${exportTime}`, 14, 22);
-            doc.text(`Tổng số buổi đã điểm danh: ${rows.length}`, 14, 27);
-            doc.text(`Lưu ý: Khoảng cách là sự sai lệch vị trí điểm danh của SV so với toạ độ mốc do GV chọn ban đầu`, 14, 32)
-
+            doc.text(`Thời gian xuất: ${exportTime}`, 14, 22);
+            doc.text(`Có mặt: ${attendRows.length} | Vắng có phép: ${absRows.length}`, 14, 27);
             doc.autoTable({
-                head: [headers],
-                body: rows,
-                startY: 37,
+                head: [headers], body: rows, startY: 32,
                 styles: { fontSize: 8, font: "DejaVuSans" },
-                headStyles: { fillColor: [99, 102, 241], font: "DejaVuSans" }
+                headStyles: { fillColor: [99, 102, 241], font: "DejaVuSans" },
+                didParseCell: function(d) {
+                    if (d.section === 'body' && d.column.index === 4) {
+                        if (d.cell.raw === "Vắng có phép") d.cell.styles.textColor = [234, 88, 12];
+                        else if (d.cell.raw.startsWith("Có mặt")) d.cell.styles.textColor = [5, 150, 105];
+                    }
+                }
             });
-
             doc.save(`${fileBase}.pdf`);
         }
     }
 
-    // --- XUẤT DANH SÁCH ĐIỂM DANH THEO LỚP & NGÀY (có mặt + vắng) ---
+    // --- XUẤT DANH SÁCH ĐIỂM DANH THEO LỚP & NGÀY (có mặt + vắng có phép + học bù) ---
     function exportAttendanceByClassDate(format) {
         const cls = document.getElementById('att-export-class').value;
         const dateInput = document.getElementById('att-export-date').value; // yyyy-MM-dd
         if (!dateInput) return alert("Vui lòng chọn ngày cần xuất.");
 
-        // Lượt điểm danh khớp đúng lớp + ngày
-        // Lượt điểm danh khớp đúng lớp + ngày (Dùng startsWith để bỏ qua phần Giờ ở phía sau mã buổi)
-        const expectedSessionId = cls + "_" + dateInput;
-        const checkedInRows = globalAttendanceData.filter(r =>
-            r[6] && r[6].toString().trim().startsWith(expectedSessionId)
-        );
-        const checkedInMssvSet = new Set(checkedInRows.map(r => r[2].toString().trim().toLowerCase()));
+        // Lọc điểm danh theo lớp + ngày (sessionId có dạng "V1_2026-06-24_HH:mm" hoặc "V1_2026-06-24_HH:mm_makeup")
+        const checkedInRows = globalAttendanceData.filter(r => {
+            if (!r[6]) return false;
+            const sid = r[6].toString().trim();
+            return sid.startsWith(cls + "_" + dateInput);
+        });
 
-        // Toàn bộ sinh viên của lớp này từ danh sách gốc (roster): [MSSV, Họ tên, Lớp]
+        // Lọc báo vắng: tìm SV của lớp đã báo vắng ngày này
+        // BaoVang: [Thời gian báo(0), Họ tên(1), MSSV(2), Lớp(3), Buổi vắng(4), Lý do(5)]
+        const absenceRows = (globalAbsenceData || []).filter(r => {
+            if (!r[0] || r[3].toString().trim() !== cls) return false;
+            return parseAttendanceDate(r[0]) === dateInput;
+        });
+
         const classRoster = globalStudentRoster.filter(r => r[2] && r[2].toString().trim() === cls);
-
         if (classRoster.length === 0) {
             return alert("Không tìm thấy danh sách sinh viên cho lớp này. Hãy kiểm tra sheet DanhSachSV.");
         }
 
         const rows = classRoster.map(r => {
-            const mssv = r[0], name = r[1];
-            const att = checkedInRows.find(a => a[2].toString().trim().toLowerCase() === mssv.toString().trim().toLowerCase());
-            
-            // Xử lý làm đẹp thời gian nếu bị dính chuẩn ISO của Google
-            let timeStr = "";
+            const mssv = r[0].toString().trim(), name = r[1];
+            const att = checkedInRows.find(a => a[2].toString().trim().toLowerCase() === mssv.toLowerCase());
+            const abs = absenceRows.find(a => a[2].toString().trim().toLowerCase() === mssv.toLowerCase());
+            const isMakeup = att && att[7] && att[7].toString().includes('Học bù');
+
+            let status = "Vắng";
+            if (att) status = isMakeup ? `Có mặt (${att[7]})` : "Có mặt";
+            else if (abs) status = "Vắng có phép";
+
+            let timeStr = "", distStr = "", coordStr = "", noteStr = "";
             if (att) {
                 timeStr = att[0].toString().includes('T') ? new Date(att[0]).toLocaleString('vi-VN') : att[0];
+                const distM = parseInt(att[4]) || 0;
+                distStr = distM >= 500 ? `${(distM/1000).toFixed(2)}km` : `${distM}m`;
+                coordStr = att[5] || "";
+                noteStr = att[7] || "";
+            } else if (abs) {
+                noteStr = abs[5] || ""; // Lý do báo vắng
             }
 
-            return [
-                mssv, name, cls,
-                att ? "Có mặt" : "Vắng",
-                timeStr, // <-- In thời gian đã làm đẹp
-                att ? `${att[4]}m` : ""
-            ];
+            return [mssv, name, cls, status, timeStr, distStr, coordStr, noteStr];
         });
 
-        const presentCount = rows.filter(r => r[3] === "Có mặt").length;
-        const headers = ["MSSV", "Họ tên", "Lớp", "Trạng thái", "Thời gian điểm danh", "Khoảng cách"];
+        const presentCount = rows.filter(r => r[3].startsWith("Có mặt")).length;
+        const absentExcused = rows.filter(r => r[3] === "Vắng có phép").length;
+        const headers = ["MSSV", "Họ tên", "Lớp", "Trạng thái", "T.Gian điểm danh", "Khoảng cách", "Tọa độ", "Ghi chú / Lý do"];
         const exportTime = new Date().toLocaleString('vi-VN');
         const dateLabel = dateInput.split('-').reverse().join('/');
         const fileBase = `DiemDanh_${cls}_${dateInput}_${Date.now()}`;
@@ -1544,40 +1798,34 @@ function registerVietnameseFont(doc) {
             const infoRows = [
                 [`Danh sách điểm danh - Lớp ${cls} - Ngày ${dateLabel}`],
                 [`Thời gian xuất dữ liệu: ${exportTime}`],
-                [`Có mặt: ${presentCount}/${rows.length} sinh viên`],
-                [`Lưu ý: Khoảng cách là sự sai lệch vị trí điểm danh của SV so với toạ độ mốc do GV chọn ban đầu`],
+                [`Có mặt: ${presentCount} | Vắng có phép: ${absentExcused} | Vắng không phép: ${rows.length - presentCount - absentExcused} / Tổng: ${rows.length} sinh viên`],
                 []
             ];
             const ws = XLSX.utils.aoa_to_sheet([...infoRows, headers, ...rows]);
-            ws['!cols'] = headers.map(() => ({ wch: 20 }));
+            ws['!cols'] = headers.map(() => ({ wch: 22 }));
             XLSX.utils.book_append_sheet(wb, ws, "Điểm danh");
             XLSX.writeFile(wb, `${fileBase}.xlsx`);
         } else {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF({ orientation: 'landscape' });
             registerVietnameseFont(doc);
-
             doc.setFontSize(14);
             doc.text(`Danh sách điểm danh - Lớp ${cls} - Ngày ${dateLabel}`, 14, 15);
             doc.setFontSize(9);
-            doc.text(`Thời gian xuất dữ liệu: ${exportTime}`, 14, 22);
-            doc.text(`Có mặt: ${presentCount}/${rows.length} sinh viên`, 14, 27);
-            doc.text(`Lưu ý: Khoảng cách là sự sai lệch vị trí điểm danh của SV so với toạ độ mốc do GV chọn ban đầu`, 14, 32)           
-
+            doc.text(`Thời gian xuất: ${exportTime}`, 14, 22);
+            doc.text(`Có mặt: ${presentCount} | Vắng có phép: ${absentExcused} | Vắng không phép: ${rows.length - presentCount - absentExcused} / Tổng: ${rows.length}`, 14, 27);
             doc.autoTable({
-                head: [headers],
-                body: rows,
-                startY: 37,
+                head: [headers], body: rows, startY: 32,
                 styles: { fontSize: 8, font: "DejaVuSans" },
                 headStyles: { fillColor: [217, 119, 6], font: "DejaVuSans" },
-                didParseCell: function(data) {
-                    if (data.section === 'body' && data.column.index === 3) {
-                        if (data.cell.raw === "Vắng") data.cell.styles.textColor = [220, 38, 38];
-                        else if (data.cell.raw === "Có mặt") data.cell.styles.textColor = [5, 150, 105];
+                didParseCell: function(d) {
+                    if (d.section === 'body' && d.column.index === 3) {
+                        if (d.cell.raw === "Vắng") d.cell.styles.textColor = [220, 38, 38];
+                        else if (d.cell.raw === "Vắng có phép") d.cell.styles.textColor = [234, 88, 12];
+                        else if (d.cell.raw.startsWith("Có mặt")) d.cell.styles.textColor = [5, 150, 105];
                     }
                 }
             });
-
             doc.save(`${fileBase}.pdf`);
         }
     }
