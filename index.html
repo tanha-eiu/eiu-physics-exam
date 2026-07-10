@@ -570,7 +570,7 @@
     const CONFIG = {
         ADMIN_ID: "admin_eiu",
         ADMIN_PW: "quanly",
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbzibsPFV-VqDL31De135SRdcSPNmcYR43LTSMUxbrVRAAJaDyJBykNga1BR1uFotEfxqA/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbzWv-nEMCtHf22mkgv6u0OU4pR4C3Ac3N3kNdlfM8RbVcZPnO8L-WWHaXu9Fr-tjNmiEQ/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
@@ -803,7 +803,23 @@
         form.classList.toggle('hidden');
         if (!form.classList.contains('hidden')) populateAbsenceSessionSelect();
     }
-
+    function getNextWeekdayDate(weekdayStr) {
+    // Trả về ngày "dd/MM/yyyy" của buổi học gần nhất (hôm nay hoặc sắp tới)
+    // weekdayStr: '2'=T2...'7'=T7,'0'=CN (chuẩn UI)
+        const WD_JS = {'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'0':0}; // UI weekday → JS getDay()
+        const target = WD_JS[weekdayStr];
+        if (target === undefined) return "";
+        const today = new Date();
+        const todayWd = today.getDay(); // JS: 0=CN,1=T2...6=T7
+        let diff = target - todayWd;
+        if (diff < 0) diff += 7; // Đã qua → lấy tuần tới
+        const result = new Date(today);
+        result.setDate(today.getDate() + diff);
+        const d = String(result.getDate()).padStart(2,'0');
+        const m = String(result.getMonth()+1).padStart(2,'0');
+        const y = result.getFullYear();
+        return `(${d}/${m}/${y})`;
+    }
     function populateAbsenceSessionSelect() {
         const sel = document.getElementById('absence-session-select');
         if (!sel) return;
@@ -813,9 +829,10 @@
             return;
         }
         const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
-        sel.innerHTML = sessions.map((s, i) =>
-            `<option value="${i}">${WD[s.weekday]||s.weekday} | ${s.startTime}–${s.endTime} | Lớp ${s.className}</option>`
-        ).join('');
+        sel.innerHTML = sessions.map((s, i) => {
+            const date = getNextWeekdayDate(s.weekday);
+            return `<option value="${i}">${WD[s.weekday]||s.weekday} ${date} | ${s.startTime}–${s.endTime} | Lớp ${s.className}</option>`;
+        }).join('');
     }
 
     async function submitAbsence() {
@@ -829,7 +846,8 @@
         if (!sess) return alert("Không tìm thấy buổi học. Vui lòng thử lại.");
 
         const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
-        const sessionLabel = `${WD[sess.weekday]||sess.weekday} | ${sess.startTime}–${sess.endTime}`;
+        const date = getNextWeekdayDate(sess.weekday);
+        const sessionLabel = `${WD[sess.weekday]||sess.weekday} ${date} | ${sess.startTime}–${sess.endTime}`;
 
         try {
             await fetch(CONFIG.GOOGLE_URL, {
@@ -1677,9 +1695,12 @@ function registerVietnameseFont(doc) {
                 const timeStr = r[0].toString().includes('T') ? new Date(r[0]).toLocaleString('vi-VN') : r[0];
                 const distM = parseInt(r[4]) || 0;
                 const distStr = distM >= 500 ? `${(distM/1000).toFixed(2)}km` : `${distM}m`;
-                const note = r[7] || ""; // Cột 8: ghi chú học bù
-                const isMakeup = note.includes('Học bù');
-                return [timeStr, r[1], r[2], r[3], isMakeup ? "Có mặt (học bù)" : "Có mặt", distStr, r[5], note];
+                const rawNote = (r[7] || "").toString();
+                const isMakeup = rawNote.includes('Học bù');
+                // Tách rõ 2 cột: Trạng thái | Ghi chú
+                const status = "Có mặt";
+                const note = isMakeup ? rawNote : ""; // Chỉ hiện ghi chú khi học bù
+                return [timeStr, r[1], r[2], r[3], status, note, distStr, r[5]];
             });
 
         // Các lượt báo vắng: [Thời gian(0), Tên(1), MSSV(2), Lớp(3), Buổi vắng(4), Lý do(5)]
@@ -1687,7 +1708,7 @@ function registerVietnameseFont(doc) {
             .filter(r => r[2] && r[2].toString().trim().toLowerCase() === target)
             .map(r => {
                 const timeStr = r[0].toString().includes('T') ? new Date(r[0]).toLocaleString('vi-VN') : r[0];
-                return [timeStr, r[1], r[2], r[3], "Vắng có phép", "", "", `Buổi: ${r[4]} — Lý do: ${r[5]}`];
+                return [timeStr, r[1], r[2], r[3], "Vắng có phép", r[4] || "", "", r[5] || ""];
             });
 
         const rows = [...attendRows, ...absRows].reverse();
@@ -1696,7 +1717,7 @@ function registerVietnameseFont(doc) {
             return alert("Không tìm thấy dữ liệu điểm danh hoặc báo vắng nào cho MSSV này.");
         }
 
-        const headers = ["Thời gian", "Họ tên", "MSSV", "Lớp", "Trạng thái", "Khoảng cách", "Tọa độ", "Ghi chú / Lý do"];
+        const headers = ["Thời gian", "Họ tên", "MSSV", "Lớp", "Trạng thái", "Ghi chú / Buổi vắng", "Khoảng cách", "Tọa độ / Lý do"];
         const exportTime = new Date().toLocaleString('vi-VN');
         const studentName = rows[0][1];
         const fileBase = `DiemDanh_${mssvInput}_${Date.now()}`;
@@ -1729,7 +1750,7 @@ function registerVietnameseFont(doc) {
                 didParseCell: function(d) {
                     if (d.section === 'body' && d.column.index === 4) {
                         if (d.cell.raw === "Vắng có phép") d.cell.styles.textColor = [234, 88, 12];
-                        else if (d.cell.raw.startsWith("Có mặt")) d.cell.styles.textColor = [5, 150, 105];
+                        else if (d.cell.raw === "Có mặt") d.cell.styles.textColor = [5, 150, 105];
                     }
                 }
             });
@@ -1753,8 +1774,13 @@ function registerVietnameseFont(doc) {
         // Lọc báo vắng: tìm SV của lớp đã báo vắng ngày này
         // BaoVang: [Thời gian báo(0), Họ tên(1), MSSV(2), Lớp(3), Buổi vắng(4), Lý do(5)]
         const absenceRows = (globalAbsenceData || []).filter(r => {
-            if (!r[0] || r[3].toString().trim() !== cls) return false;
-            return parseAttendanceDate(r[0]) === dateInput;
+            if (!r[3] || r[3].toString().trim() !== cls) return false;
+    // r[4] = label buổi vắng, VD: "Thứ 3 (24/06/2026) | 12:30–14:30"
+    // Trích ngày dd/MM/yyyy từ trong ngoặc đơn rồi so với dateInput (yyyy-MM-dd)
+            const match = (r[4] || "").toString().match(/\((\d{2})\/(\d{2})\/(\d{4})\)/);
+            if (!match) return false;
+            const sessionDate = `${match[3]}-${match[2]}-${match[1]}`; // → "yyyy-MM-dd"
+            return sessionDate === dateInput;
         });
 
         const classRoster = globalStudentRoster.filter(r => r[2] && r[2].toString().trim() === cls);
@@ -1766,29 +1792,33 @@ function registerVietnameseFont(doc) {
             const mssv = r[0].toString().trim(), name = r[1];
             const att = checkedInRows.find(a => a[2].toString().trim().toLowerCase() === mssv.toLowerCase());
             const abs = absenceRows.find(a => a[2].toString().trim().toLowerCase() === mssv.toLowerCase());
-            const isMakeup = att && att[7] && att[7].toString().includes('Học bù');
+            const rawNote = att ? (att[7] || "").toString() : "";
+            const isMakeup = rawNote.includes('Học bù');
 
+            // Cột Trạng thái: luôn đơn giản, rõ ràng
             let status = "Vắng";
-            if (att) status = isMakeup ? `Có mặt (${att[7]})` : "Có mặt";
+            if (att) status = "Có mặt";
             else if (abs) status = "Vắng có phép";
 
-            let timeStr = "", distStr = "", coordStr = "", noteStr = "";
+            // Cột Ghi chú: chỉ hiện thêm thông tin khi cần
+            let note = "";
+            if (isMakeup) note = rawNote;             // "Học bù tại lớp V2"
+            else if (!att && abs) note = abs[5] || ""; // Lý do báo vắng
+
+            let timeStr = "", distStr = "", coordStr = "";
             if (att) {
                 timeStr = att[0].toString().includes('T') ? new Date(att[0]).toLocaleString('vi-VN') : att[0];
                 const distM = parseInt(att[4]) || 0;
                 distStr = distM >= 500 ? `${(distM/1000).toFixed(2)}km` : `${distM}m`;
                 coordStr = att[5] || "";
-                noteStr = att[7] || "";
-            } else if (abs) {
-                noteStr = abs[5] || ""; // Lý do báo vắng
             }
 
-            return [mssv, name, cls, status, timeStr, distStr, coordStr, noteStr];
+            return [mssv, name, cls, status, note, timeStr, distStr, coordStr];
         });
 
-        const presentCount = rows.filter(r => r[3].startsWith("Có mặt")).length;
+        const presentCount = rows.filter(r => r[3] === "Có mặt").length;
         const absentExcused = rows.filter(r => r[3] === "Vắng có phép").length;
-        const headers = ["MSSV", "Họ tên", "Lớp", "Trạng thái", "T.Gian điểm danh", "Khoảng cách", "Tọa độ", "Ghi chú / Lý do"];
+        const headers = ["MSSV", "Họ tên", "Lớp", "Trạng thái", "Ghi chú", "T.Gian điểm danh", "Khoảng cách", "Tọa độ"];
         const exportTime = new Date().toLocaleString('vi-VN');
         const dateLabel = dateInput.split('-').reverse().join('/');
         const fileBase = `DiemDanh_${cls}_${dateInput}_${Date.now()}`;
@@ -1822,7 +1852,11 @@ function registerVietnameseFont(doc) {
                     if (d.section === 'body' && d.column.index === 3) {
                         if (d.cell.raw === "Vắng") d.cell.styles.textColor = [220, 38, 38];
                         else if (d.cell.raw === "Vắng có phép") d.cell.styles.textColor = [234, 88, 12];
-                        else if (d.cell.raw.startsWith("Có mặt")) d.cell.styles.textColor = [5, 150, 105];
+                        else if (d.cell.raw === "Có mặt") d.cell.styles.textColor = [5, 150, 105];
+                    }
+                    // Cột Ghi chú (index 4): tô màu xanh dương khi là học bù
+                    if (d.section === 'body' && d.column.index === 4 && d.cell.raw && d.cell.raw.toString().includes('Học bù')) {
+                        d.cell.styles.textColor = [37, 99, 235];
                     }
                 }
             });
