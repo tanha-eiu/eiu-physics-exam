@@ -565,7 +565,7 @@
     const CONFIG = {
         ADMIN_ID: "admin_eiu",
         ADMIN_PW: "quanly",
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbzWv-nEMCtHf22mkgv6u0OU4pR4C3Ac3N3kNdlfM8RbVcZPnO8L-WWHaXu9Fr-tjNmiEQ/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbwbdACMqvq-qaSim1Vf4Ll2SZpCEy4C4kC6NZQ1nHGZdzH7kd91eRZkcILSd1-inKywUQ/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
@@ -698,12 +698,63 @@ async function ensureMammoth() {
     function hideLoading() { document.getElementById('loading-overlay').classList.replace('flex', 'hidden'); }
 
     window.onload = async function() {
-        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-            document.documentElement.classList.add('dark');
-            document.getElementById('dark-mode-toggle').checked = true;
-        }
+    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        document.getElementById('dark-mode-toggle').checked = true;
+    }
+    hideLoading()
+    // Gọi song song: thông báo (nhẹ, về nhanh) và dữ liệu hệ thống (nặng, tải ngầm)
+    fetchAnnouncementFast();
+    fetchSystemDataInBackground();
+}
 
-        showLoading("Đang tải dữ liệu hệ thống...");
+async function fetchAnnouncementFast() {
+    // Bước 1: Hiện NGAY thông báo đã lưu từ lần trước (nếu có) — 0 giây chờ
+    const cachedAnn = localStorage.getItem('cachedAnnouncement');
+    const cachedTime = localStorage.getItem('cachedAnnouncementTime');
+    if (cachedAnn && cachedAnn.trim() !== "") {
+        showAnnouncementBox(cachedAnn, cachedTime, false); // false = không cần hiệu ứng fade
+    }
+
+    // Bước 2: Âm thầm tải bản mới nhất, cập nhật nếu có thay đổi
+    try {
+        let res = await fetch(CONFIG.GOOGLE_URL + "?action=getAnnouncement");
+        let data = await res.json();
+        globalAnnouncement = data.announcement || "";
+        globalAnnouncementTime = data.announcementTime || "";
+
+        // Lưu lại cho lần mở trang sau
+        localStorage.setItem('cachedAnnouncement', globalAnnouncement);
+        localStorage.setItem('cachedAnnouncementTime', globalAnnouncementTime);
+
+        if (globalAnnouncement.trim() !== "") {
+            // Chỉ cập nhật lại UI nếu nội dung khác với bản cache đã hiện
+            if (globalAnnouncement !== cachedAnn) {
+                showAnnouncementBox(globalAnnouncement, globalAnnouncementTime, true);
+            }
+        } else {
+            // Thông báo đã bị giảng viên xóa/tắt — ẩn đi
+            document.getElementById('announcement-box').classList.replace('flex', 'hidden');
+            localStorage.removeItem('cachedAnnouncement');
+        }
+    } catch(e) { console.log("Lỗi tải thông báo"); }
+}
+
+function showAnnouncementBox(content, time, useFade) {
+    const box = document.getElementById('announcement-box');
+    document.getElementById('announcement-content').innerHTML = content.replace(/\n/g, '<br>');
+    document.getElementById('announcement-time').innerText = time;
+    box.classList.replace('hidden', 'flex');
+    if (useFade) {
+        box.style.opacity = '0';
+        box.style.transition = 'opacity 0.4s ease';
+        requestAnimationFrame(() => { box.style.opacity = '1'; });
+    } else {
+        box.style.opacity = '1';
+    }
+}
+
+async function fetchSystemDataInBackground() {
         try {
             let sysRes = await fetch(CONFIG.GOOGLE_URL + "?action=getSystemData");
             let sysData = await sysRes.json();
@@ -713,26 +764,30 @@ async function ensureMammoth() {
             isExamUnlocked = sysData.isExamUnlocked === true;
             isMidtermUnlocked = sysData.isMidtermUnlocked === true;
             isFinalUnlocked = sysData.isFinalUnlocked === true;
-            examMatrix = sysData.examMatrix || {}; 
+            examMatrix = sysData.examMatrix || {};
             globalReviewCode = sysData.reviewCode || "";
-            globalAnnouncement = sysData.announcement || "";
-            globalAnnouncementTime = sysData.announcementTime || "";
             globalAttendanceConfig = sysData.attendance || {};
             globalAbsenceMessage = sysData.absenceMessage || "";
 
-            if (globalAnnouncement.trim() !== "") {
-                document.getElementById('announcement-box').classList.replace('hidden', 'flex');
-                document.getElementById('announcement-content').innerHTML = globalAnnouncement.replace(/\n/g, '<br>');
-                document.getElementById('announcement-time').innerText = globalAnnouncementTime;
-            }
+            window._systemDataReady = true;
         } catch(e) { console.log("Lỗi tải data"); }
-        hideLoading();
     }
 
     async function handleLogin() {
         const account = document.getElementById('login-account').value.trim();
         const password = document.getElementById('login-password').value.trim();
         if (!account || !password) return alert("Vui lòng điền đủ Tài khoản và Mật khẩu.");
+        
+        // Nếu dữ liệu hệ thống (câu hỏi...) chưa tải xong kịp, chờ thêm chút (thường đã xong từ lúc gõ mật khẩu)
+        if (!window._systemDataReady) {
+            showLoading("Đang hoàn tất tải dữ liệu...");
+            let waited = 0;
+            while (!window._systemDataReady && waited < 8000) {
+                await new Promise(r => setTimeout(r, 200));
+                waited += 200;
+            }
+            hideLoading();
+        }
 
         // --- Đăng nhập Admin (giữ nguyên cơ chế cũ, dùng chung 2 ô account/password) ---
         if (account.toLowerCase() === CONFIG.ADMIN_ID && password.toLowerCase() === CONFIG.ADMIN_PW) {
