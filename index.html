@@ -19,12 +19,7 @@
     <meta name="apple-mobile-web-app-title" content="EIU Physics">    
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Thư viện xuất dữ liệu: Excel (SheetJS) và PDF (jsPDF + autotable) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -574,6 +569,27 @@
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
+    // Lazy load thư viện chỉ khi cần — tránh tải ~1.5MB không cần thiết lúc mở trang
+const _loaded = {};
+function loadScript(url) {
+    if (_loaded[url]) return Promise.resolve();
+    return new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = url; s.onload = () => { _loaded[url] = true; res(); }; s.onerror = rej;
+        document.head.appendChild(s);
+    });
+}
+async function ensureExportLibs() {
+    await Promise.all([
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'),
+        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+    ]);
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+}
+async function ensureMammoth() {
+    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js');
+}
+
     let currentPracticeChapter = "";
     let currentTest = [], studentAnswers = [];
     let testMode = '', timerInterval, startTime = 0, violations = 0;
@@ -1397,7 +1413,8 @@ function handleFileUpload(event, targetBank) {
         
         if (f.name.endsWith('.docx')) {
             const r = new FileReader(); 
-            r.onload = (e) => {
+            r.onload = async (e) => {
+                await ensureMammoth();
                 mammoth.extractRawText({arrayBuffer: e.target.result}).then(res => {
                     processRawText(res.value, targetBank);
                     fileInput.value = ''; 
@@ -1532,7 +1549,8 @@ function registerVietnameseFont(doc) {
         document.getElementById('export-examtype-wrap').classList.toggle('hidden', source !== 'onthi');
     }
 
-    function exportData(format) {
+    async function exportData(format) {
+        await ensureExportLibs();
         const { headers, rows, sourceLabel, fClass, fMssv } = getFilteredExportData();
 
         if (rows.length === 0) {
@@ -1624,7 +1642,8 @@ function registerVietnameseFont(doc) {
         return [...practiceRows.reverse(), ...examRows.reverse(), ...onthiRows.reverse()];
     }
 
-    function exportCombinedByMssv(format) {
+    async function exportCombinedByMssv(format) {
+        await ensureExportLibs();
         const mssvInput = document.getElementById('export-mssv-combined').value.trim();
         if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất báo cáo.");
 
@@ -1682,7 +1701,8 @@ function registerVietnameseFont(doc) {
         return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
     }
 
-    function exportAttendanceByMssv(format) {
+    async function exportAttendanceByMssv(format) {
+        await ensureExportLibs();
         const mssvInput = document.getElementById('att-export-mssv').value.trim();
         if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất dữ liệu điểm danh.");
 
@@ -1759,7 +1779,8 @@ function registerVietnameseFont(doc) {
     }
 
     // --- XUẤT DANH SÁCH ĐIỂM DANH THEO LỚP & NGÀY (có mặt + vắng có phép + học bù) ---
-    function exportAttendanceByClassDate(format) {
+    async function exportAttendanceByClassDate(format) {
+        await ensureExportLibs();
         const cls = document.getElementById('att-export-class').value;
         const dateInput = document.getElementById('att-export-date').value; // yyyy-MM-dd
         if (!dateInput) return alert("Vui lòng chọn ngày cần xuất.");
