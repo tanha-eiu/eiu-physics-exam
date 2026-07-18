@@ -19,12 +19,8 @@
     <meta name="apple-mobile-web-app-title" content="EIU Physics">    
     
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <!-- Thư viện xuất dữ liệu: Excel (SheetJS) và PDF (jsPDF + autotable) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+    <!-- mammoth, xlsx, jspdf: chỉ Admin dùng (upload Word, xuất Excel/PDF) — tải lazy khi cần, không load ngay ở đây -->
     
     <script>
         tailwind.config = {
@@ -613,6 +609,30 @@
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
+
+    // --- Lazy load thư viện nặng (chỉ Admin dùng: xuất Excel/PDF, upload Word) ---
+    // Tránh tải ~430KB không cần thiết ngay lúc mở trang — chỉ tải đúng lúc bấm nút liên quan.
+    const _loadedLibs = {};
+    function loadScript(url) {
+        if (_loadedLibs[url]) return Promise.resolve();
+        return new Promise((res, rej) => {
+            const s = document.createElement('script');
+            s.src = url;
+            s.onload = () => { _loadedLibs[url] = true; res(); };
+            s.onerror = rej;
+            document.head.appendChild(s);
+        });
+    }
+    async function ensureExportLibs() {
+        await Promise.all([
+            loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'),
+            loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
+        ]);
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
+    }
+    async function ensureMammoth() {
+        await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js');
+    }
     let currentPracticeChapter = "";
     let currentTest = [], studentAnswers = [];
     let testMode = '', timerInterval, startTime = 0, violations = 0;
@@ -726,7 +746,13 @@
             document.getElementById('dark-mode-toggle').checked = true;
         }
 
-        showLoading("Đang tải dữ liệu hệ thống...");
+        // Ẩn màn hình loading NGAY LẬP TỨC — không chờ Apps Script (có thể mất vài giây do cold-start).
+        // Form đăng nhập hiện ra ngay; dữ liệu hệ thống được tải ngầm phía sau.
+        hideLoading();
+        fetchSystemDataInBackground();
+    }
+
+    async function fetchSystemDataInBackground() {
         try {
             let sysRes = await fetch(CONFIG.GOOGLE_URL + "?action=getSystemData");
             let sysData = await sysRes.json();
@@ -748,14 +774,26 @@
                 document.getElementById('announcement-content').innerHTML = globalAnnouncement.replace(/\n/g, '<br>');
                 document.getElementById('announcement-time').innerText = globalAnnouncementTime;
             }
+            window._systemDataReady = true;
         } catch(e) { console.log("Lỗi tải data"); }
-        hideLoading();
     }
 
     async function handleLogin() {
         const account = document.getElementById('login-account').value.trim();
         const password = document.getElementById('login-password').value.trim();
         if (!account || !password) return alert("Vui lòng điền đủ Tài khoản và Mật khẩu.");
+
+        // Nếu dữ liệu hệ thống (câu hỏi, cấu hình...) chưa tải xong kịp (do Apps Script cold-start
+        // chậm), chờ thêm một chút trước khi vào — thường đã tải xong ngay trong lúc gõ tài khoản.
+        if (!window._systemDataReady) {
+            showLoading("Đang hoàn tất tải dữ liệu...");
+            let waited = 0;
+            while (!window._systemDataReady && waited < 10000) {
+                await new Promise(r => setTimeout(r, 200));
+                waited += 200;
+            }
+            hideLoading();
+        }
 
         // --- Đăng nhập Admin (giữ nguyên cơ chế cũ, dùng chung 2 ô account/password) ---
         if (account.toLowerCase() === CONFIG.ADMIN_ID && password.toLowerCase() === CONFIG.ADMIN_PW) {
@@ -1418,12 +1456,13 @@ function submitTest() {
         });
     }
 
-function handleFileUpload(event, targetBank) {
+async function handleFileUpload(event, targetBank) {
         const fileInput = event.target;
         const f = fileInput.files[0]; 
         if (!f) return;
         
         if (f.name.endsWith('.docx')) {
+            await ensureMammoth();
             const r = new FileReader(); 
             r.onload = (e) => {
                 mammoth.extractRawText({arrayBuffer: e.target.result}).then(res => {
@@ -1560,7 +1599,8 @@ function registerVietnameseFont(doc) {
         document.getElementById('export-examtype-wrap').classList.toggle('hidden', source !== 'onthi');
     }
 
-    function exportData(format) {
+    async function exportData(format) {
+        await ensureExportLibs();
         const { headers, rows, sourceLabel, fClass, fMssv } = getFilteredExportData();
 
         if (rows.length === 0) {
@@ -1652,7 +1692,8 @@ function registerVietnameseFont(doc) {
         return [...practiceRows.reverse(), ...examRows.reverse(), ...onthiRows.reverse()];
     }
 
-    function exportCombinedByMssv(format) {
+    async function exportCombinedByMssv(format) {
+        await ensureExportLibs();
         const mssvInput = document.getElementById('export-mssv-combined').value.trim();
         if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất báo cáo.");
 
@@ -1710,7 +1751,8 @@ function registerVietnameseFont(doc) {
         return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
     }
 
-    function exportAttendanceByMssv(format) {
+    async function exportAttendanceByMssv(format) {
+        await ensureExportLibs();
         const mssvInput = document.getElementById('att-export-mssv').value.trim();
         if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất dữ liệu điểm danh.");
 
@@ -1787,7 +1829,8 @@ function registerVietnameseFont(doc) {
     }
 
     // --- XUẤT DANH SÁCH ĐIỂM DANH THEO LỚP & NGÀY (có mặt + vắng có phép + học bù) ---
-    function exportAttendanceByClassDate(format) {
+    async function exportAttendanceByClassDate(format) {
+        await ensureExportLibs();
         const cls = document.getElementById('att-export-class').value;
         const dateInput = document.getElementById('att-export-date').value; // yyyy-MM-dd
         if (!dateInput) return alert("Vui lòng chọn ngày cần xuất.");
