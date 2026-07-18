@@ -78,6 +78,41 @@
         body { transition: background-color 0.3s, color 0.3s; }
         .math-block-overflow { overflow-x: auto; padding-bottom: 5px; }
         .glass-morphism { background: rgba(255,255,255,0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+
+        /* Ảnh nền màn hình đăng nhập: phủ TOÀN VIEWPORT (fixed), không bị giới hạn
+           bởi khung max-w-[1400px] của nội dung — tránh dải xám 2 bên trên màn hình rộng */
+        :root {
+            /* Độ đậm lớp phủ trắng lên ảnh nền — chỉnh trong khoảng 0.2 (ảnh rõ, ít dịu) 
+               đến 0.5 (ảnh dịu nhiều, chữ dễ đọc hơn nếu ảnh nhiều chi tiết rối) */
+            --login-overlay-opacity: 0.3;
+        }
+        .login-bg-fixed {
+            position: fixed;
+            inset: 0;
+            z-index: -1;
+            background-image: url('bg.jpg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+        .login-bg-fixed::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            /* Phủ màu trắng trong suốt nhẹ — làm dịu ảnh, tăng tương phản cho khung đăng nhập,
+               nhưng vẫn giữ được màu sắc gốc của ảnh (không dùng màu thương hiệu đậm để tránh ám màu) */
+            background: rgba(255, 255, 255, var(--login-overlay-opacity));
+        }
+        .login-bg-fixed.hidden { display: none; }
+        #login-screen-bg { min-height: calc(100vh - 4rem); }
+
+        .login-box {
+            background: #fff;
+            border-radius: 12px;
+            padding: 36px;
+            width: 340px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+        }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 dark:bg-darkBg dark:text-slate-100 font-sans no-copy" oncontextmenu="return false;">
@@ -97,7 +132,10 @@
     <h2 class="text-xl font-bold text-blue-700 dark:text-blue-400 animate-pulse" id="loading-text">Đang đồng bộ máy chủ...</h2>
 </div>
 
+<div id="login-bg-fixed" class="login-bg-fixed"></div>
+
 <div class="max-w-[1400px] mx-auto p-4 md:p-8">
+    <div id="login-screen-bg">
     <div id="login-screen" class="max-w-5xl mx-auto mt-20 flex flex-col md:flex-row gap-8 justify-center items-stretch transition-all duration-500">
         <div id="announcement-box" class="hidden md:w-1/2 bg-white dark:bg-darkCard rounded-3xl shadow-xl p-8 border border-slate-200 dark:border-darkBorder flex-col relative overflow-hidden">
             <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/10 rounded-bl-full -z-10"></div>
@@ -110,15 +148,16 @@
             </div>
         </div>
 
-        <div class="w-full md:w-1/2 max-w-md bg-white dark:bg-darkCard rounded-3xl shadow-2xl p-8 border border-slate-200 dark:border-darkBorder">
-            <h1 class="text-3xl font-black text-blue-800 dark:text-blue-400 text-center mb-2 tracking-tighter">EIU PHYSICS</h1>
+        <div class="login-box w-full md:w-1/2 max-w-md mx-auto md:mx-0">
+            <h1 class="text-3xl font-black text-blue-800 text-center mb-2 tracking-tighter">EIU PHYSICS</h1>
             <p class="text-center text-slate-500 mb-8 uppercase tracking-widest text-[10px] font-bold">Hệ thống khảo thí động</p>
             <div class="space-y-4">
-                <input type="text" id="login-account" autocomplete="username" class="w-full px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-darkBorder rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Tài khoản">
-                <input type="password" id="login-password" autocomplete="current-password" class="w-full px-5 py-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-darkBorder rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Mật khẩu">
+                <input type="text" id="login-account" autocomplete="username" class="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Tài khoản">
+                <input type="password" id="login-password" autocomplete="current-password" class="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Mật khẩu">
                 <button onclick="handleLogin()" id="btn-login" class="w-full bg-blue-700 hover:bg-blue-800 text-white font-bold py-4 rounded-2xl shadow-lg transition active:scale-95">VÀO HỆ THỐNG</button>
             </div>
         </div>
+    </div>
     </div>
 
     <div id="admin-screen" class="hidden space-y-6">
@@ -731,6 +770,8 @@
                 globalStudentRoster = dashData.roster || [];
                 globalAbsenceData = dashData.absence || [];
                 document.getElementById('login-screen').classList.add('hidden');
+                document.getElementById('login-screen-bg').classList.add('hidden');
+                document.getElementById('login-bg-fixed').classList.add('hidden');
                 document.getElementById('admin-screen').classList.remove('hidden');
                 document.getElementById('toggle-exam-btn').checked = isExamUnlocked;
                 document.getElementById('toggle-midterm-btn').checked = isMidtermUnlocked;
@@ -764,6 +805,8 @@
 
             currentUser = { name: result.name, mssv: result.mssv, className: result.className };
             document.getElementById('login-screen').classList.add('hidden');
+            document.getElementById('login-screen-bg').classList.add('hidden');
+            document.getElementById('login-bg-fixed').classList.add('hidden');
             document.getElementById('mode-screen').classList.remove('hidden');
             document.getElementById('student-welcome').innerText = `Chào bạn, ${result.name}`;
             document.getElementById('student-class').innerText = `Lớp: ${result.className}`;
