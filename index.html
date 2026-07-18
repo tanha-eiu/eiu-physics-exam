@@ -746,10 +746,24 @@
             document.getElementById('dark-mode-toggle').checked = true;
         }
 
+        // Hiện NGAY thông báo đã lưu từ lần truy cập trước (nếu có) — 0 giây chờ.
+        // Dữ liệu thật sẽ được kiểm tra ngầm phía sau và cập nhật nếu có gì đổi.
+        showCachedAnnouncement();
+
         // Ẩn màn hình loading NGAY LẬP TỨC — không chờ Apps Script (có thể mất vài giây do cold-start).
         // Form đăng nhập hiện ra ngay; dữ liệu hệ thống được tải ngầm phía sau.
         hideLoading();
         fetchSystemDataInBackground();
+    }
+
+    function showCachedAnnouncement() {
+        const cached = localStorage.getItem('cachedAnnouncement');
+        const cachedTime = localStorage.getItem('cachedAnnouncementTime');
+        if (cached && cached.trim() !== "") {
+            document.getElementById('announcement-box').classList.replace('hidden', 'flex');
+            document.getElementById('announcement-content').innerHTML = cached.replace(/\n/g, '<br>');
+            document.getElementById('announcement-time').innerText = cachedTime || "";
+        }
     }
 
     async function fetchSystemDataInBackground() {
@@ -769,10 +783,22 @@
             globalAttendanceConfig = sysData.attendance || {};
             globalAbsenceMessage = sysData.absenceMessage || "";
 
+            const cachedBefore = localStorage.getItem('cachedAnnouncement') || "";
+
             if (globalAnnouncement.trim() !== "") {
                 document.getElementById('announcement-box').classList.replace('hidden', 'flex');
-                document.getElementById('announcement-content').innerHTML = globalAnnouncement.replace(/\n/g, '<br>');
-                document.getElementById('announcement-time').innerText = globalAnnouncementTime;
+                // Chỉ ghi lại DOM nếu nội dung thật sự khác bản cache đã hiện — tránh giật hình không cần thiết
+                if (globalAnnouncement !== cachedBefore) {
+                    document.getElementById('announcement-content').innerHTML = globalAnnouncement.replace(/\n/g, '<br>');
+                    document.getElementById('announcement-time').innerText = globalAnnouncementTime;
+                }
+                localStorage.setItem('cachedAnnouncement', globalAnnouncement);
+                localStorage.setItem('cachedAnnouncementTime', globalAnnouncementTime);
+            } else {
+                // Giảng viên đã tắt/xóa thông báo — ẩn đi và xóa cache
+                document.getElementById('announcement-box').classList.replace('flex', 'hidden');
+                localStorage.removeItem('cachedAnnouncement');
+                localStorage.removeItem('cachedAnnouncementTime');
             }
             window._systemDataReady = true;
         } catch(e) { console.log("Lỗi tải data"); }
