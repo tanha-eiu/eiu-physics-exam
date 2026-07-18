@@ -19,7 +19,12 @@
     <meta name="apple-mobile-web-app-title" content="EIU Physics">    
     
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Thư viện xuất dữ liệu: Excel (SheetJS) và PDF (jsPDF + autotable) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
     
     <script>
         tailwind.config = {
@@ -569,27 +574,6 @@
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
-    // Lazy load thư viện chỉ khi cần — tránh tải ~1.5MB không cần thiết lúc mở trang
-const _loaded = {};
-function loadScript(url) {
-    if (_loaded[url]) return Promise.resolve();
-    return new Promise((res, rej) => {
-        const s = document.createElement('script');
-        s.src = url; s.onload = () => { _loaded[url] = true; res(); }; s.onerror = rej;
-        document.head.appendChild(s);
-    });
-}
-async function ensureExportLibs() {
-    await Promise.all([
-        loadScript('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'),
-        loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'),
-    ]);
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js');
-}
-async function ensureMammoth() {
-    await loadScript('https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js');
-}
-
     let currentPracticeChapter = "";
     let currentTest = [], studentAnswers = [];
     let testMode = '', timerInterval, startTime = 0, violations = 0;
@@ -698,63 +682,12 @@ async function ensureMammoth() {
     function hideLoading() { document.getElementById('loading-overlay').classList.replace('flex', 'hidden'); }
 
     window.onload = async function() {
-    if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-        document.documentElement.classList.add('dark');
-        document.getElementById('dark-mode-toggle').checked = true;
-    }
-    hideLoading()
-    // Gọi song song: thông báo (nhẹ, về nhanh) và dữ liệu hệ thống (nặng, tải ngầm)
-    fetchAnnouncementFast();
-    fetchSystemDataInBackground();
-}
-
-async function fetchAnnouncementFast() {
-    // Bước 1: Hiện NGAY thông báo đã lưu từ lần trước (nếu có) — 0 giây chờ
-    const cachedAnn = localStorage.getItem('cachedAnnouncement');
-    const cachedTime = localStorage.getItem('cachedAnnouncementTime');
-    if (cachedAnn && cachedAnn.trim() !== "") {
-        showAnnouncementBox(cachedAnn, cachedTime, false); // false = không cần hiệu ứng fade
-    }
-
-    // Bước 2: Âm thầm tải bản mới nhất, cập nhật nếu có thay đổi
-    try {
-        let res = await fetch(CONFIG.GOOGLE_URL + "?action=getAnnouncement");
-        let data = await res.json();
-        globalAnnouncement = data.announcement || "";
-        globalAnnouncementTime = data.announcementTime || "";
-
-        // Lưu lại cho lần mở trang sau
-        localStorage.setItem('cachedAnnouncement', globalAnnouncement);
-        localStorage.setItem('cachedAnnouncementTime', globalAnnouncementTime);
-
-        if (globalAnnouncement.trim() !== "") {
-            // Chỉ cập nhật lại UI nếu nội dung khác với bản cache đã hiện
-            if (globalAnnouncement !== cachedAnn) {
-                showAnnouncementBox(globalAnnouncement, globalAnnouncementTime, true);
-            }
-        } else {
-            // Thông báo đã bị giảng viên xóa/tắt — ẩn đi
-            document.getElementById('announcement-box').classList.replace('flex', 'hidden');
-            localStorage.removeItem('cachedAnnouncement');
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.getElementById('dark-mode-toggle').checked = true;
         }
-    } catch(e) { console.log("Lỗi tải thông báo"); }
-}
 
-function showAnnouncementBox(content, time, useFade) {
-    const box = document.getElementById('announcement-box');
-    document.getElementById('announcement-content').innerHTML = content.replace(/\n/g, '<br>');
-    document.getElementById('announcement-time').innerText = time;
-    box.classList.replace('hidden', 'flex');
-    if (useFade) {
-        box.style.opacity = '0';
-        box.style.transition = 'opacity 0.4s ease';
-        requestAnimationFrame(() => { box.style.opacity = '1'; });
-    } else {
-        box.style.opacity = '1';
-    }
-}
-
-async function fetchSystemDataInBackground() {
+        showLoading("Đang tải dữ liệu hệ thống...");
         try {
             let sysRes = await fetch(CONFIG.GOOGLE_URL + "?action=getSystemData");
             let sysData = await sysRes.json();
@@ -764,30 +697,26 @@ async function fetchSystemDataInBackground() {
             isExamUnlocked = sysData.isExamUnlocked === true;
             isMidtermUnlocked = sysData.isMidtermUnlocked === true;
             isFinalUnlocked = sysData.isFinalUnlocked === true;
-            examMatrix = sysData.examMatrix || {};
+            examMatrix = sysData.examMatrix || {}; 
             globalReviewCode = sysData.reviewCode || "";
+            globalAnnouncement = sysData.announcement || "";
+            globalAnnouncementTime = sysData.announcementTime || "";
             globalAttendanceConfig = sysData.attendance || {};
             globalAbsenceMessage = sysData.absenceMessage || "";
 
-            window._systemDataReady = true;
+            if (globalAnnouncement.trim() !== "") {
+                document.getElementById('announcement-box').classList.replace('hidden', 'flex');
+                document.getElementById('announcement-content').innerHTML = globalAnnouncement.replace(/\n/g, '<br>');
+                document.getElementById('announcement-time').innerText = globalAnnouncementTime;
+            }
         } catch(e) { console.log("Lỗi tải data"); }
+        hideLoading();
     }
 
     async function handleLogin() {
         const account = document.getElementById('login-account').value.trim();
         const password = document.getElementById('login-password').value.trim();
         if (!account || !password) return alert("Vui lòng điền đủ Tài khoản và Mật khẩu.");
-        
-        // Nếu dữ liệu hệ thống (câu hỏi...) chưa tải xong kịp, chờ thêm chút (thường đã xong từ lúc gõ mật khẩu)
-        if (!window._systemDataReady) {
-            showLoading("Đang hoàn tất tải dữ liệu...");
-            let waited = 0;
-            while (!window._systemDataReady && waited < 8000) {
-                await new Promise(r => setTimeout(r, 200));
-                waited += 200;
-            }
-            hideLoading();
-        }
 
         // --- Đăng nhập Admin (giữ nguyên cơ chế cũ, dùng chung 2 ô account/password) ---
         if (account.toLowerCase() === CONFIG.ADMIN_ID && password.toLowerCase() === CONFIG.ADMIN_PW) {
@@ -874,23 +803,7 @@ async function fetchSystemDataInBackground() {
         form.classList.toggle('hidden');
         if (!form.classList.contains('hidden')) populateAbsenceSessionSelect();
     }
-    function getNextWeekdayDate(weekdayStr) {
-    // Trả về ngày "dd/MM/yyyy" của buổi học gần nhất (hôm nay hoặc sắp tới)
-    // weekdayStr: '2'=T2...'7'=T7,'0'=CN (chuẩn UI)
-        const WD_JS = {'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'0':0}; // UI weekday → JS getDay()
-        const target = WD_JS[weekdayStr];
-        if (target === undefined) return "";
-        const today = new Date();
-        const todayWd = today.getDay(); // JS: 0=CN,1=T2...6=T7
-        let diff = target - todayWd;
-        if (diff < 0) diff += 7; // Đã qua → lấy tuần tới
-        const result = new Date(today);
-        result.setDate(today.getDate() + diff);
-        const d = String(result.getDate()).padStart(2,'0');
-        const m = String(result.getMonth()+1).padStart(2,'0');
-        const y = result.getFullYear();
-        return `(${d}/${m}/${y})`;
-    }
+
     function populateAbsenceSessionSelect() {
         const sel = document.getElementById('absence-session-select');
         if (!sel) return;
@@ -900,10 +813,9 @@ async function fetchSystemDataInBackground() {
             return;
         }
         const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
-        sel.innerHTML = sessions.map((s, i) => {
-            const date = getNextWeekdayDate(s.weekday);
-            return `<option value="${i}">${WD[s.weekday]||s.weekday} ${date} | ${s.startTime}–${s.endTime} | Lớp ${s.className}</option>`;
-        }).join('');
+        sel.innerHTML = sessions.map((s, i) =>
+            `<option value="${i}">${WD[s.weekday]||s.weekday} | ${s.startTime}–${s.endTime} | Lớp ${s.className}</option>`
+        ).join('');
     }
 
     async function submitAbsence() {
@@ -917,10 +829,10 @@ async function fetchSystemDataInBackground() {
         if (!sess) return alert("Không tìm thấy buổi học. Vui lòng thử lại.");
 
         const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
-        const date = getNextWeekdayDate(sess.weekday);
-        const sessionLabel = `${WD[sess.weekday]||sess.weekday} ${date} | ${sess.startTime}–${sess.endTime}`;
+        const sessionLabel = `${WD[sess.weekday]||sess.weekday} | ${sess.startTime}–${sess.endTime}`;
 
         try {
+            showLoading("Đang gửi báo vắng...");
             await fetch(CONFIG.GOOGLE_URL, {
                 method: 'POST',
                 body: JSON.stringify({
@@ -934,6 +846,7 @@ async function fetchSystemDataInBackground() {
                     reason
                 })
             });
+            hideLoading();
             // Hiện modal lời nhắn giảng viên
             const msg = globalAbsenceMessage || "Đã nhận đơn xin phép của bạn. Cảm ơn bạn đã thông báo trước.";
             document.getElementById('absence-modal-message').innerHTML = msg.replace(/\n/g, '<br>');
@@ -941,6 +854,7 @@ async function fetchSystemDataInBackground() {
             document.getElementById('absence-form').classList.add('hidden');
             document.getElementById('absence-reason').value = '';
         } catch(e) {
+            hideLoading();
             alert("Lỗi kết nối. Vui lòng thử lại.");
         }
     }
@@ -1468,8 +1382,7 @@ function handleFileUpload(event, targetBank) {
         
         if (f.name.endsWith('.docx')) {
             const r = new FileReader(); 
-            r.onload = async (e) => {
-                await ensureMammoth();
+            r.onload = (e) => {
                 mammoth.extractRawText({arrayBuffer: e.target.result}).then(res => {
                     processRawText(res.value, targetBank);
                     fileInput.value = ''; 
@@ -1604,8 +1517,7 @@ function registerVietnameseFont(doc) {
         document.getElementById('export-examtype-wrap').classList.toggle('hidden', source !== 'onthi');
     }
 
-    async function exportData(format) {
-        await ensureExportLibs();
+    function exportData(format) {
         const { headers, rows, sourceLabel, fClass, fMssv } = getFilteredExportData();
 
         if (rows.length === 0) {
@@ -1697,8 +1609,7 @@ function registerVietnameseFont(doc) {
         return [...practiceRows.reverse(), ...examRows.reverse(), ...onthiRows.reverse()];
     }
 
-    async function exportCombinedByMssv(format) {
-        await ensureExportLibs();
+    function exportCombinedByMssv(format) {
         const mssvInput = document.getElementById('export-mssv-combined').value.trim();
         if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất báo cáo.");
 
@@ -1756,8 +1667,7 @@ function registerVietnameseFont(doc) {
         return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
     }
 
-    async function exportAttendanceByMssv(format) {
-        await ensureExportLibs();
+    function exportAttendanceByMssv(format) {
         const mssvInput = document.getElementById('att-export-mssv').value.trim();
         if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất dữ liệu điểm danh.");
 
@@ -1783,7 +1693,7 @@ function registerVietnameseFont(doc) {
             .filter(r => r[2] && r[2].toString().trim().toLowerCase() === target)
             .map(r => {
                 const timeStr = r[0].toString().includes('T') ? new Date(r[0]).toLocaleString('vi-VN') : r[0];
-                return [timeStr, r[1], r[2], r[3], "Vắng có phép", r[4] || "", "", r[5] || ""];
+                return [timeStr, r[1], r[2], r[3], "Vắng có phép", r[5] || "", "", ""];
             });
 
         const rows = [...attendRows, ...absRows].reverse();
@@ -1792,7 +1702,7 @@ function registerVietnameseFont(doc) {
             return alert("Không tìm thấy dữ liệu điểm danh hoặc báo vắng nào cho MSSV này.");
         }
 
-        const headers = ["Thời gian", "Họ tên", "MSSV", "Lớp", "Trạng thái", "Ghi chú / Buổi vắng", "Khoảng cách", "Tọa độ / Lý do"];
+        const headers = ["Thời gian", "Họ tên", "MSSV", "Lớp", "Trạng thái", "Ghi chú", "Khoảng cách", "Tọa độ"];
         const exportTime = new Date().toLocaleString('vi-VN');
         const studentName = rows[0][1];
         const fileBase = `DiemDanh_${mssvInput}_${Date.now()}`;
@@ -1834,8 +1744,7 @@ function registerVietnameseFont(doc) {
     }
 
     // --- XUẤT DANH SÁCH ĐIỂM DANH THEO LỚP & NGÀY (có mặt + vắng có phép + học bù) ---
-    async function exportAttendanceByClassDate(format) {
-        await ensureExportLibs();
+    function exportAttendanceByClassDate(format) {
         const cls = document.getElementById('att-export-class').value;
         const dateInput = document.getElementById('att-export-date').value; // yyyy-MM-dd
         if (!dateInput) return alert("Vui lòng chọn ngày cần xuất.");
@@ -1850,13 +1759,8 @@ function registerVietnameseFont(doc) {
         // Lọc báo vắng: tìm SV của lớp đã báo vắng ngày này
         // BaoVang: [Thời gian báo(0), Họ tên(1), MSSV(2), Lớp(3), Buổi vắng(4), Lý do(5)]
         const absenceRows = (globalAbsenceData || []).filter(r => {
-            if (!r[3] || r[3].toString().trim() !== cls) return false;
-    // r[4] = label buổi vắng, VD: "Thứ 3 (24/06/2026) | 12:30–14:30"
-    // Trích ngày dd/MM/yyyy từ trong ngoặc đơn rồi so với dateInput (yyyy-MM-dd)
-            const match = (r[4] || "").toString().match(/\((\d{2})\/(\d{2})\/(\d{4})\)/);
-            if (!match) return false;
-            const sessionDate = `${match[3]}-${match[2]}-${match[1]}`; // → "yyyy-MM-dd"
-            return sessionDate === dateInput;
+            if (!r[0] || r[3].toString().trim() !== cls) return false;
+            return parseAttendanceDate(r[0]) === dateInput;
         });
 
         const classRoster = globalStudentRoster.filter(r => r[2] && r[2].toString().trim() === cls);
