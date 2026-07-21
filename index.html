@@ -911,6 +911,23 @@
         if (!form.classList.contains('hidden')) populateAbsenceSessionSelect();
     }
 
+function getNextWeekdayDate(weekdayStr) {
+    // Trả về ngày "(dd/MM/yyyy)" của buổi học gần nhất (hôm nay hoặc sắp tới)
+    // weekdayStr: '2'=T2...'7'=T7,'0'=CN (chuẩn UI) -> đổi sang chuẩn JS getDay(): 0=CN,1=T2...6=T7
+    const WD_JS = {'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'0':0};
+    const target = WD_JS[weekdayStr];
+    if (target === undefined) return "";
+    const today = new Date();
+    const todayWd = today.getDay();
+    let diff = target - todayWd;
+    if (diff < 0) diff += 7; // Đã qua trong tuần này -> lấy buổi tuần tới
+    const result = new Date(today);
+    result.setDate(today.getDate() + diff);
+    const d = String(result.getDate()).padStart(2,'0');
+    const m = String(result.getMonth()+1).padStart(2,'0');
+    const y = result.getFullYear();
+    return `(${d}/${m}/${y})`;
+}
     function populateAbsenceSessionSelect() {
         const sel = document.getElementById('absence-session-select');
         if (!sel) return;
@@ -921,7 +938,7 @@
         }
         const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
         sel.innerHTML = sessions.map((s, i) =>
-            `<option value="${i}">${WD[s.weekday]||s.weekday} | ${s.startTime}–${s.endTime} | Lớp ${s.className}</option>`
+            `<option value="${i}">${WD[s.weekday]||s.weekday} ${getNextWeekdayDate(s.weekday)} | ${s.startTime}–${s.endTime} | Lớp ${s.className}</option>`
         ).join('');
     }
 
@@ -936,7 +953,7 @@
         if (!sess) return alert("Không tìm thấy buổi học. Vui lòng thử lại.");
 
         const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
-        const sessionLabel = `${WD[sess.weekday]||sess.weekday} | ${sess.startTime}–${sess.endTime}`;
+        const sessionLabel = `${WD[sess.weekday]||sess.weekday} ${getNextWeekdayDate(sess.weekday)} | ${sess.startTime}–${sess.endTime}`;
 
         try {
             showLoading("Đang gửi báo vắng...");
