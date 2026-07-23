@@ -603,7 +603,7 @@
 <script>
     // THẦY DÁN LINK WEB APP CỦA GOOGLE APPS SCRIPT VÀO ĐÂY
     const CONFIG = {
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbxgbEsXzE5RcUww52tCBhGdY0iy3-SY37aY-PJ_goLnMeh8YSfGaDozk1Q7pgzowfVT/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbwdAezrAJYkfLCEyPN4ArsnJmPMEhJXJsDFZUd_Eh4xXcL8vu7pyTUHnmShqT5p4BYNNA/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
@@ -1436,8 +1436,9 @@ function submitTest() {
     }
 
     function saveData(score, dur) {
-        const submitTime = new Date().toLocaleString('vi-VN');
-        const p = { action: "saveScore", type: testMode, submitTime, name: currentUser.name, mssv: currentUser.mssv, className: currentUser.className, score: `${score}/${currentTest.length}`, duration: dur, violations, chapter: testMode === 'practice' ? currentPracticeChapter : "" };
+        // Không tự tính submitTime ở đây nữa — server (Apps Script) sẽ tự gán thời gian thật
+        // theo giờ Việt Nam, tránh sai lệch nếu đồng hồ máy sinh viên bị chỉnh sai.
+        const p = { action: "saveScore", type: testMode, name: currentUser.name, mssv: currentUser.mssv, className: currentUser.className, score: `${score}/${currentTest.length}`, duration: dur, violations, chapter: testMode === 'practice' ? currentPracticeChapter : "" };
         fetch(CONFIG.GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(p) }).then(() => { document.getElementById('save-status').innerText = "✅ ĐÃ LƯU"; document.getElementById('save-status').classList.remove('animate-pulse'); });
     }
 
