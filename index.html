@@ -603,12 +603,11 @@
 <script>
     // THẦY DÁN LINK WEB APP CỦA GOOGLE APPS SCRIPT VÀO ĐÂY
     const CONFIG = {
-        ADMIN_ID: "admin_eiu",
-        ADMIN_PW: "quanly",
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbwbdACMqvq-qaSim1Vf4Ll2SZpCEy4C4kC6NZQ1nHGZdzH7kd91eRZkcILSd1-inKywUQ/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbxgbEsXzE5RcUww52tCBhGdY0iy3-SY37aY-PJ_goLnMeh8YSfGaDozk1Q7pgzowfVT/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
+    let adminToken = ""; // Token phiên Admin, cấp bởi server sau khi đăng nhập đúng, gửi kèm mọi request Admin
 
     // --- Lazy load thư viện nặng (chỉ Admin dùng: xuất Excel/PDF, upload Word) ---
     // Tránh tải ~430KB không cần thiết ngay lúc mở trang — chỉ tải đúng lúc bấm nút liên quan.
@@ -821,39 +820,8 @@
             hideLoading();
         }
 
-        // --- Đăng nhập Admin (giữ nguyên cơ chế cũ, dùng chung 2 ô account/password) ---
-        if (account.toLowerCase() === CONFIG.ADMIN_ID && password.toLowerCase() === CONFIG.ADMIN_PW) {
-            showLoading("Admin Dashboard...");
-            try {
-                let dashRes = await fetch(CONFIG.GOOGLE_URL + "?action=getAdminData");
-                let dashData = await dashRes.json();
-                globalPracticeData = dashData.practice || [];
-                globalExamData = dashData.exam || [];
-                globalOnThiData = dashData.onthi || [];
-                globalAttendanceData = dashData.attendance || [];
-                globalStudentRoster = dashData.roster || [];
-                globalAbsenceData = dashData.absence || [];
-                document.getElementById('login-screen').classList.add('hidden');
-                document.getElementById('login-screen-bg').classList.add('hidden');
-                document.getElementById('login-bg-fixed').classList.add('hidden');
-                document.getElementById('admin-screen').classList.remove('hidden');
-                document.getElementById('toggle-exam-btn').checked = isExamUnlocked;
-                document.getElementById('toggle-midterm-btn').checked = isMidtermUnlocked;
-                document.getElementById('toggle-final-btn').checked = isFinalUnlocked;
-                document.getElementById('midterm-status').innerText = `(${midtermBank.length})`;
-                document.getElementById('final-status').innerText = `(${finalBank.length})`;
-                document.getElementById('admin-review-code').value = globalReviewCode;
-                document.getElementById('admin-announcement').value = globalAnnouncement;
-                document.getElementById('admin-absence-message').value = globalAbsenceMessage;
-                populateAttendanceConfigUI();
-                updateAdminUI();
-                renderDashboards(globalPracticeData, globalExamData, globalOnThiData);
-            } catch(e) { alert("Lỗi kết nối Admin."); }
-            hideLoading();
-            return;
-        }
-
-        // --- Đăng nhập sinh viên: đối chiếu Tài khoản + Mật khẩu với Google Sheet ---
+        // Luôn xác thực qua server (Apps Script) — không có mật khẩu nào lưu sẵn trong code phía trình duyệt.
+        // Server tự phân biệt tài khoản Admin hay Sinh viên dựa trên dữ liệu trong Google Sheet.
         showLoading("Đang xác thực...");
         try {
             const res = await fetch(CONFIG.GOOGLE_URL, {
@@ -861,12 +829,51 @@
                 body: JSON.stringify({ action: "login", account, password })
             });
             const result = await res.json();
-            hideLoading();
 
             if (!result.success) {
+                hideLoading();
                 return alert(result.message || "Tài khoản hoặc mật khẩu không đúng.");
             }
 
+            if (result.isAdmin) {
+                // --- Đăng nhập Admin: lưu token phiên, gọi getAdminData kèm token ---
+                adminToken = result.adminToken;
+                showLoading("Admin Dashboard...");
+                try {
+                    let dashRes = await fetch(CONFIG.GOOGLE_URL + "?action=getAdminData&token=" + encodeURIComponent(adminToken));
+                    let dashData = await dashRes.json();
+                    if (dashData.success === false) {
+                        hideLoading();
+                        return alert(dashData.message || "Không thể tải dữ liệu Admin.");
+                    }
+                    globalPracticeData = dashData.practice || [];
+                    globalExamData = dashData.exam || [];
+                    globalOnThiData = dashData.onthi || [];
+                    globalAttendanceData = dashData.attendance || [];
+                    globalStudentRoster = dashData.roster || [];
+                    globalAbsenceData = dashData.absence || [];
+                    document.getElementById('login-screen').classList.add('hidden');
+                    document.getElementById('login-screen-bg').classList.add('hidden');
+                    document.getElementById('login-bg-fixed').classList.add('hidden');
+                    document.getElementById('admin-screen').classList.remove('hidden');
+                    document.getElementById('toggle-exam-btn').checked = isExamUnlocked;
+                    document.getElementById('toggle-midterm-btn').checked = isMidtermUnlocked;
+                    document.getElementById('toggle-final-btn').checked = isFinalUnlocked;
+                    document.getElementById('midterm-status').innerText = `(${midtermBank.length})`;
+                    document.getElementById('final-status').innerText = `(${finalBank.length})`;
+                    document.getElementById('admin-review-code').value = globalReviewCode;
+                    document.getElementById('admin-announcement').value = globalAnnouncement;
+                    document.getElementById('admin-absence-message').value = globalAbsenceMessage;
+                    populateAttendanceConfigUI();
+                    updateAdminUI();
+                    renderDashboards(globalPracticeData, globalExamData, globalOnThiData);
+                } catch(e) { alert("Lỗi kết nối Admin."); }
+                hideLoading();
+                return;
+            }
+
+            // --- Đăng nhập sinh viên ---
+            hideLoading();
             currentUser = { name: result.name, mssv: result.mssv, className: result.className };
             document.getElementById('login-screen').classList.add('hidden');
             document.getElementById('login-screen-bg').classList.add('hidden');
@@ -911,23 +918,24 @@
         if (!form.classList.contains('hidden')) populateAbsenceSessionSelect();
     }
 
-function getNextWeekdayDate(weekdayStr) {
-    // Trả về ngày "(dd/MM/yyyy)" của buổi học gần nhất (hôm nay hoặc sắp tới)
-    // weekdayStr: '2'=T2...'7'=T7,'0'=CN (chuẩn UI) -> đổi sang chuẩn JS getDay(): 0=CN,1=T2...6=T7
-    const WD_JS = {'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'0':0};
-    const target = WD_JS[weekdayStr];
-    if (target === undefined) return "";
-    const today = new Date();
-    const todayWd = today.getDay();
-    let diff = target - todayWd;
-    if (diff < 0) diff += 7; // Đã qua trong tuần này -> lấy buổi tuần tới
-    const result = new Date(today);
-    result.setDate(today.getDate() + diff);
-    const d = String(result.getDate()).padStart(2,'0');
-    const m = String(result.getMonth()+1).padStart(2,'0');
-    const y = result.getFullYear();
-    return `(${d}/${m}/${y})`;
-}
+    function getNextWeekdayDate(weekdayStr) {
+        // Trả về { label: "(dd/MM/yyyy)", sortKey: Date } của buổi học gần nhất (hôm nay hoặc sắp tới)
+        // weekdayStr: '2'=T2...'7'=T7,'0'=CN (chuẩn UI) -> đổi sang chuẩn JS getDay(): 0=CN,1=T2...6=T7
+        const WD_JS = {'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'0':0};
+        const target = WD_JS[weekdayStr];
+        if (target === undefined) return { label: "", sortKey: new Date(8640000000000000) };
+        const today = new Date();
+        const todayWd = today.getDay();
+        let diff = target - todayWd;
+        if (diff < 0) diff += 7;
+        const result = new Date(today);
+        result.setDate(today.getDate() + diff);
+        const d = String(result.getDate()).padStart(2,'0');
+        const m = String(result.getMonth()+1).padStart(2,'0');
+        const y = result.getFullYear();
+        return { label: `(${d}/${m}/${y})`, sortKey: result };
+    }
+
     function populateAbsenceSessionSelect() {
         const sel = document.getElementById('absence-session-select');
         if (!sel) return;
@@ -937,8 +945,13 @@ function getNextWeekdayDate(weekdayStr) {
             return;
         }
         const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
-        sel.innerHTML = sessions.map((s, i) =>
-            `<option value="${i}">${WD[s.weekday]||s.weekday} ${getNextWeekdayDate(s.weekday)} | ${s.startTime}–${s.endTime} | Lớp ${s.className}</option>`
+
+        // Gắn kèm ngày gần nhất + chỉ số gốc (để submitAbsence tra đúng buổi), rồi sắp theo ngày tăng dần
+        const withDate = sessions.map((s, i) => ({ s, i, date: getNextWeekdayDate(s.weekday) }));
+        withDate.sort((a, b) => a.date.sortKey - b.date.sortKey);
+
+        sel.innerHTML = withDate.map(({ s, i, date }) =>
+            `<option value="${i}">${WD[s.weekday]||s.weekday} ${date.label} | ${s.startTime}–${s.endTime} | Lớp ${s.className}</option>`
         ).join('');
     }
 
@@ -953,7 +966,7 @@ function getNextWeekdayDate(weekdayStr) {
         if (!sess) return alert("Không tìm thấy buổi học. Vui lòng thử lại.");
 
         const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
-        const sessionLabel = `${WD[sess.weekday]||sess.weekday} ${getNextWeekdayDate(sess.weekday)} | ${sess.startTime}–${sess.endTime}`;
+        const sessionLabel = `${WD[sess.weekday]||sess.weekday} ${getNextWeekdayDate(sess.weekday).label} | ${sess.startTime}–${sess.endTime}`;
 
         try {
             showLoading("Đang gửi báo vắng...");
@@ -1266,8 +1279,16 @@ function submitTest() {
         examMatrix = tempMatrix;
         showLoading("Đang lưu...");
         let now = new Date();
-        const payload = { action: "syncAdmin", questions: questionBank, midtermBank, finalBank, isExamUnlocked: document.getElementById('toggle-exam-btn').checked, isMidtermUnlocked: document.getElementById('toggle-midterm-btn').checked, isFinalUnlocked: document.getElementById('toggle-final-btn').checked, examMatrix, reviewCode: document.getElementById('admin-review-code').value, announcement: document.getElementById('admin-announcement').value, announcementTime: now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN'), absenceMessage: document.getElementById('admin-absence-message').value };
-        try { await fetch(CONFIG.GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify(payload) }); alert("Đã lưu!"); } catch(e) { alert("Lỗi mạng."); }
+        const payload = { action: "syncAdmin", adminToken, questions: questionBank, midtermBank, finalBank, isExamUnlocked: document.getElementById('toggle-exam-btn').checked, isMidtermUnlocked: document.getElementById('toggle-midterm-btn').checked, isFinalUnlocked: document.getElementById('toggle-final-btn').checked, examMatrix, reviewCode: document.getElementById('admin-review-code').value, announcement: document.getElementById('admin-announcement').value, announcementTime: now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN'), absenceMessage: document.getElementById('admin-absence-message').value };
+        try {
+            const res = await fetch(CONFIG.GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
+            const result = await res.json().catch(() => ({}));
+            if (result.success === false) {
+                alert(result.message || "Lưu thất bại.");
+            } else {
+                alert("Đã lưu!");
+            }
+        } catch(e) { alert("Lỗi mạng."); }
         hideLoading();
     }
 
@@ -1400,9 +1421,14 @@ function submitTest() {
         const attendanceConfig = { sessions: attSessions };
         showLoading("Đang lưu cài đặt điểm danh...");
         try {
-            await fetch(CONFIG.GOOGLE_URL, { method: 'POST', mode: 'no-cors', body: JSON.stringify({ action: "saveAttendanceConfig", attendance: attendanceConfig }) });
-            globalAttendanceConfig = attendanceConfig;
-            alert("Đã lưu cài đặt điểm danh!");
+            const res = await fetch(CONFIG.GOOGLE_URL, { method: 'POST', body: JSON.stringify({ action: "saveAttendanceConfig", adminToken, attendance: attendanceConfig }) });
+            const result = await res.json().catch(() => ({}));
+            if (result.success === false) {
+                alert(result.message || "Lưu thất bại.");
+            } else {
+                globalAttendanceConfig = attendanceConfig;
+                alert("Đã lưu cài đặt điểm danh!");
+            }
         } catch(e) {
             alert("Lỗi mạng khi lưu cài đặt điểm danh.");
         }
