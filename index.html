@@ -1840,53 +1840,126 @@ function registerVietnameseFont(doc) {
         return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
     }
 
+    // Trích ngày "dd/MM/yyyy" nằm trong ngoặc đơn của nhãn buổi báo vắng, trả về "yyyy-MM-dd"
+    function extractDateFromSessionLabel(label) {
+        const m = (label || "").toString().match(/\((\d{2})\/(\d{2})\/(\d{4})\)/);
+        if (!m) return "";
+        return `${m[3]}-${m[2]}-${m[1]}`;
+    }
+
+    // Đổi weekday chuẩn UI ('2'=T2...'7'=T7,'0'=CN) sang getDay() chuẩn JS (0=CN,1=T2...6=T7)
+    const WD_TO_JS = {'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'0':0};
+
+    function ymdToDate(ymd) {
+        const [y, m, d] = ymd.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    }
+    function dateToYmd(d) {
+        const p = n => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;
+    }
+    function ymdToDisplay(ymd) {
+        const [y, m, d] = ymd.split('-');
+        return `${d}/${m}/${y}`;
+    }
+
     async function exportAttendanceByMssv(format) {
         await ensureExportLibs();
         const mssvInput = document.getElementById('att-export-mssv').value.trim();
         if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất dữ liệu điểm danh.");
-
         const target = mssvInput.toLowerCase();
 
-        // Các lượt điểm danh (kể cả học bù)
-        const attendRows = globalAttendanceData
-            .filter(r => r[2] && r[2].toString().trim().toLowerCase() === target)
-            .map(r => {
-                const timeStr = r[0].toString().includes('T') ? new Date(r[0]).toLocaleString('vi-VN') : r[0];
-                const distM = parseInt(r[4]) || 0;
-                const distStr = distM >= 500 ? `${(distM/1000).toFixed(2)}km` : `${distM}m`;
-                const rawNote = (r[7] || "").toString();
-                const isMakeup = rawNote.includes('Học bù');
-                // Tách rõ 2 cột: Trạng thái | Ghi chú
-                const status = "Có mặt";
-                const note = isMakeup ? rawNote : ""; // Chỉ hiện ghi chú khi học bù
-                return [timeStr, r[1], r[2], r[3], status, note, distStr, r[5]];
-            });
+        // Tìm sinh viên trong danh sách gốc để biết đúng Lớp + Họ tên
+        const rosterEntry = globalStudentRoster.find(r => r[0] && r[0].toString().trim().toLowerCase() === target);
+        if (!rosterEntry) return alert("Không tìm thấy MSSV này trong danh sách sinh viên.");
+        const studentName = rosterEntry[1];
+        const cls = rosterEntry[2].toString().trim();
 
-        // Các lượt báo vắng: [Thời gian(0), Tên(1), MSSV(2), Lớp(3), Buổi vắng(4), Lý do(5)]
-        const absRows = (globalAbsenceData || [])
-            .filter(r => r[2] && r[2].toString().trim().toLowerCase() === target)
-            .map(r => {
-                const timeStr = r[0].toString().includes('T') ? new Date(r[0]).toLocaleString('vi-VN') : r[0];
-                return [timeStr, r[1], r[2], r[3], "Vắng có phép", r[5] || "", "", ""];
-            });
-
-        const rows = [...attendRows, ...absRows].reverse();
-
-        if (rows.length === 0) {
-            return alert("Không tìm thấy dữ liệu điểm danh hoặc báo vắng nào cho MSSV này.");
+        // Các ngày trong tuần lớp này có lịch học (lấy từ cấu hình buổi điểm danh)
+        const classWeekdays = new Set(
+            (globalAttendanceConfig.sessions || []).filter(s => s.enabled && s.className === cls).map(s => s.weekday)
+        );
+        if (classWeekdays.size === 0) {
+            return alert("Lớp này chưa được cấu hình buổi điểm danh nào (Thứ/giờ), không thể xác định lịch học.");
         }
 
-        const headers = ["Thời gian", "Họ tên", "MSSV", "Lớp", "Trạng thái", "Ghi chú", "Khoảng cách", "Tọa độ"];
+        // Xác định ngày bắt đầu báo cáo = ngày sớm nhất có dữ liệu điểm danh/báo vắng của LỚP này
+        let earliestYmd = null;
+        globalAttendanceData.forEach(r => {
+            if (r[6] && r[6].toString().startsWith(cls + "_")) {
+                const ymd = parseAttendanceDate(r[0]);
+                if (ymd && (!earliestYmd || ymd < earliestYmd)) earliestYmd = ymd;
+            }
+        });
+        (globalAbsenceData || []).forEach(r => {
+            if (r[3] && r[3].toString().trim() === cls) {
+                const ymd = extractDateFromSessionLabel(r[4]);
+                if (ymd && (!earliestYmd || ymd < earliestYmd)) earliestYmd = ymd;
+            }
+        });
+        if (!earliestYmd) {
+            return alert("Lớp này chưa có dữ liệu điểm danh hoặc báo vắng nào để xác định ngày bắt đầu báo cáo.");
+        }
+
+        const todayYmd = dateToYmd(new Date());
+        const startDate = ymdToDate(earliestYmd);
+        const endDate = ymdToDate(todayYmd);
+
+        // Liệt kê từng ngày từ ngày bắt đầu đến hôm nay, chỉ giữ lại đúng các ngày khớp Thứ có lịch học
+        const rows = [];
+        let presentCount = 0, excusedCount = 0, unexcusedCount = 0;
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+            const jsWd = d.getDay();
+            const uiWd = Object.keys(WD_TO_JS).find(k => WD_TO_JS[k] === jsWd);
+            if (!classWeekdays.has(uiWd)) continue; // Không phải ngày học của lớp này -> bỏ qua
+
+            const ymd = dateToYmd(d);
+            const dateLabel = ymdToDisplay(ymd);
+
+            // Tìm điểm danh của đúng sinh viên này, đúng ngày này, đúng lớp này (kể cả học bù)
+            const attRow = globalAttendanceData.find(r =>
+                r[2] && r[2].toString().trim().toLowerCase() === target &&
+                r[6] && r[6].toString().startsWith(cls + "_" + ymd)
+            );
+            // Tìm báo vắng có phép của đúng sinh viên này, đúng ngày này
+            const absRow = (globalAbsenceData || []).find(r =>
+                r[2] && r[2].toString().trim().toLowerCase() === target &&
+                r[3] && r[3].toString().trim() === cls &&
+                extractDateFromSessionLabel(r[4]) === ymd
+            );
+
+            if (attRow) {
+                presentCount++;
+                const rawNote = (attRow[7] || "").toString();
+                const timeStr = attRow[0].toString().includes('T') ? new Date(attRow[0]).toLocaleString('vi-VN') : attRow[0];
+                const distM = parseInt(attRow[4]) || 0;
+                const distStr = distM >= 500 ? `${(distM/1000).toFixed(2)}km` : `${distM}m`;
+                rows.push([dateLabel, "Có mặt", rawNote.includes('Học bù') ? rawNote : "", timeStr, distStr, attRow[5] || ""]);
+            } else if (absRow) {
+                excusedCount++;
+                rows.push([dateLabel, "Vắng có phép", absRow[5] || "", "", "", ""]);
+            } else {
+                unexcusedCount++;
+                rows.push([dateLabel, "Vắng không phép", "", "", "", ""]);
+            }
+        }
+
+        if (rows.length === 0) {
+            return alert("Không có buổi học nào trong khoảng thời gian được ghi nhận.");
+        }
+
+        const headers = ["Ngày", "Trạng thái", "Ghi chú / Lý do", "Thời gian điểm danh", "Khoảng cách", "Tọa độ"];
         const exportTime = new Date().toLocaleString('vi-VN');
-        const studentName = rows[0][1];
         const fileBase = `DiemDanh_${mssvInput}_${Date.now()}`;
+        const summaryLine = `Có mặt: ${presentCount} | Vắng có phép: ${excusedCount} | Vắng không phép: ${unexcusedCount} / Tổng: ${rows.length} buổi`;
 
         if (format === 'xlsx') {
             const wb = XLSX.utils.book_new();
             const infoRows = [
-                [`Lịch sử điểm danh - Sinh viên: ${studentName} (MSSV: ${mssvInput})`],
+                [`Lịch sử điểm danh - Sinh viên: ${studentName} (MSSV: ${mssvInput}) - Lớp: ${cls}`],
+                [`Khoảng thời gian: ${ymdToDisplay(earliestYmd)} - ${ymdToDisplay(todayYmd)}`],
                 [`Thời gian xuất dữ liệu: ${exportTime}`],
-                [`Tổng lượt có mặt: ${attendRows.length} | Lượt báo vắng có phép: ${absRows.length}`],
+                [summaryLine],
                 []
             ];
             const ws = XLSX.utils.aoa_to_sheet([...infoRows, headers, ...rows]);
@@ -1898,17 +1971,19 @@ function registerVietnameseFont(doc) {
             const doc = new jsPDF({ orientation: 'landscape' });
             registerVietnameseFont(doc);
             doc.setFontSize(14);
-            doc.text(`Lịch sử điểm danh: ${studentName} (MSSV: ${mssvInput})`, 14, 15);
+            doc.text(`Lịch sử điểm danh: ${studentName} (MSSV: ${mssvInput}) - Lớp: ${cls}`, 14, 15);
             doc.setFontSize(9);
-            doc.text(`Thời gian xuất: ${exportTime}`, 14, 22);
-            doc.text(`Có mặt: ${attendRows.length} | Vắng có phép: ${absRows.length}`, 14, 27);
+            doc.text(`Khoảng thời gian: ${ymdToDisplay(earliestYmd)} - ${ymdToDisplay(todayYmd)}`, 14, 22);
+            doc.text(`Thời gian xuất: ${exportTime}`, 14, 27);
+            doc.text(summaryLine, 14, 32);
             doc.autoTable({
-                head: [headers], body: rows, startY: 32,
+                head: [headers], body: rows, startY: 37,
                 styles: { fontSize: 8, font: "DejaVuSans" },
                 headStyles: { fillColor: [99, 102, 241], font: "DejaVuSans" },
                 didParseCell: function(d) {
-                    if (d.section === 'body' && d.column.index === 4) {
-                        if (d.cell.raw === "Vắng có phép") d.cell.styles.textColor = [234, 88, 12];
+                    if (d.section === 'body' && d.column.index === 1) {
+                        if (d.cell.raw === "Vắng không phép") d.cell.styles.textColor = [220, 38, 38];
+                        else if (d.cell.raw === "Vắng có phép") d.cell.styles.textColor = [234, 88, 12];
                         else if (d.cell.raw === "Có mặt") d.cell.styles.textColor = [5, 150, 105];
                     }
                 }
