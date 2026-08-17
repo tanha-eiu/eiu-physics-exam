@@ -603,7 +603,7 @@
 <script>
     // THẦY DÁN LINK WEB APP CỦA GOOGLE APPS SCRIPT VÀO ĐÂY
     const CONFIG = {
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbwdAezrAJYkfLCEyPN4ArsnJmPMEhJXJsDFZUd_Eh4xXcL8vu7pyTUHnmShqT5p4BYNNA/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbyCR1KL3l6kFlDsxZZ6z4ynn97RmrcjNoItJW6F0HXq-3xELR2v7rZ_UX0Ki6Advz6DBA/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
@@ -1148,10 +1148,29 @@
         }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
     }
     // --- CORE LOGIC LÀM BÀI ---
-function startMode(mode) {
+async function startMode(mode) {
         if (mode === 'midterm' && !isMidtermUnlocked) return alert("Phòng thi chưa mở.");
         if (mode === 'final' && !isFinalUnlocked) return alert("Phòng thi chưa mở.");
         if (mode === 'exam' && !isExamUnlocked) return alert("Phòng thi chưa mở.");
+
+        // Giữa kỳ/Cuối kỳ: kiểm tra thêm đúng khung giờ buổi học + đã điểm danh (thường hoặc học bù)
+        if (mode === 'midterm' || mode === 'final') {
+            showLoading("Đang kiểm tra điều kiện vào thi...");
+            try {
+                const res = await fetch(CONFIG.GOOGLE_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: "checkExamEligibility", mssv: currentUser.mssv, className: currentUser.className, examType: mode })
+                });
+                const result = await res.json();
+                hideLoading();
+                if (!result.success) {
+                    return alert(result.message || "Bạn chưa đủ điều kiện vào thi.");
+                }
+            } catch(e) {
+                hideLoading();
+                return alert("Lỗi kết nối. Vui lòng thử lại.");
+            }
+        }
 
         if (mode === 'midterm') currentTest = [...midtermBank].slice(0, 20);
         else if (mode === 'final') currentTest = [...finalBank].slice(0, 20);
