@@ -210,6 +210,17 @@
                         <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
                     </label>
                 </div>
+
+                <div class="mt-4 pt-4 border-t border-amber-100 flex items-center justify-between gap-3">
+                    <div>
+                        <span class="block font-bold text-xs">Yêu cầu đúng giờ + điểm danh mới vào thi</span>
+                        <p class="text-[9px] text-slate-400 mt-0.5">Bật: chỉ vào thi trong đúng khung giờ buổi học của lớp, và phải đã điểm danh (hoặc học bù). Tắt: sinh viên vào thi tự do bất cứ lúc nào, miễn phòng thi đang mở.</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input type="checkbox" id="toggle-require-exam-attendance" class="sr-only peer">
+                        <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
+                    </label>
+                </div>
             </div>
         </div>
 
@@ -603,7 +614,7 @@
 <script>
     // THẦY DÁN LINK WEB APP CỦA GOOGLE APPS SCRIPT VÀO ĐÂY
     const CONFIG = {
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbyCR1KL3l6kFlDsxZZ6z4ynn97RmrcjNoItJW6F0HXq-3xELR2v7rZ_UX0Ki6Advz6DBA/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbyeZZH_74Pb3sigZiJeFuOZitmQwz5TOQ_zM8-Ys8zfaXjisKMDxHCNN-KheNaxP_AIqg/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
@@ -635,7 +646,7 @@
     let currentPracticeChapter = "";
     let currentTest = [], studentAnswers = [];
     let testMode = '', timerInterval, startTime = 0, violations = 0;
-    let isExamUnlocked = false, isMidtermUnlocked = false, isFinalUnlocked = false;
+    let isExamUnlocked = false, isMidtermUnlocked = false, isFinalUnlocked = false, requireExamAttendance = false;
     let examMatrix = {}; 
     let globalPracticeData = [], globalExamData = [], globalOnThiData = [];
     let globalReviewCode = "", globalAnnouncement = "", globalAnnouncementTime = "";
@@ -775,6 +786,7 @@
             isExamUnlocked = sysData.isExamUnlocked === true;
             isMidtermUnlocked = sysData.isMidtermUnlocked === true;
             isFinalUnlocked = sysData.isFinalUnlocked === true;
+            requireExamAttendance = sysData.requireExamAttendance === true;
             examMatrix = sysData.examMatrix || {}; 
             globalReviewCode = sysData.reviewCode || "";
             globalAnnouncement = sysData.announcement || "";
@@ -859,6 +871,7 @@
                     document.getElementById('toggle-exam-btn').checked = isExamUnlocked;
                     document.getElementById('toggle-midterm-btn').checked = isMidtermUnlocked;
                     document.getElementById('toggle-final-btn').checked = isFinalUnlocked;
+                    document.getElementById('toggle-require-exam-attendance').checked = requireExamAttendance;
                     document.getElementById('midterm-status').innerText = `(${midtermBank.length})`;
                     document.getElementById('final-status').innerText = `(${finalBank.length})`;
                     document.getElementById('admin-review-code').value = globalReviewCode;
@@ -1298,7 +1311,7 @@ function submitTest() {
         examMatrix = tempMatrix;
         showLoading("Đang lưu...");
         let now = new Date();
-        const payload = { action: "syncAdmin", adminToken, questions: questionBank, midtermBank, finalBank, isExamUnlocked: document.getElementById('toggle-exam-btn').checked, isMidtermUnlocked: document.getElementById('toggle-midterm-btn').checked, isFinalUnlocked: document.getElementById('toggle-final-btn').checked, examMatrix, reviewCode: document.getElementById('admin-review-code').value, announcement: document.getElementById('admin-announcement').value, announcementTime: now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN'), absenceMessage: document.getElementById('admin-absence-message').value };
+        const payload = { action: "syncAdmin", adminToken, questions: questionBank, midtermBank, finalBank, isExamUnlocked: document.getElementById('toggle-exam-btn').checked, isMidtermUnlocked: document.getElementById('toggle-midterm-btn').checked, isFinalUnlocked: document.getElementById('toggle-final-btn').checked, requireExamAttendance: document.getElementById('toggle-require-exam-attendance').checked, examMatrix, reviewCode: document.getElementById('admin-review-code').value, announcement: document.getElementById('admin-announcement').value, announcementTime: now.toLocaleTimeString('vi-VN') + " - " + now.toLocaleDateString('vi-VN'), absenceMessage: document.getElementById('admin-absence-message').value };
         try {
             const res = await fetch(CONFIG.GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
             const result = await res.json().catch(() => ({}));
