@@ -109,6 +109,19 @@
             width: 340px;
             box-shadow: 0 20px 60px rgba(0,0,0,.3);
         }
+
+        /* ===== Toast & Confirm ===== */
+        #toast-container { position: fixed; top: 1.25rem; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: .5rem; width: 92%; max-width: 440px; pointer-events: none; }
+        .toast { pointer-events: auto; display: flex; align-items: flex-start; gap: .625rem; padding: .875rem 1rem; border-radius: 14px; box-shadow: 0 12px 32px rgba(0,0,0,.16); font-size: .8rem; font-weight: 600; line-height: 1.45; background: #fff; color: #1e293b; border: 1px solid #e2e8f0; transform: translateY(-14px); opacity: 0; transition: transform .28s ease, opacity .28s ease; }
+        .dark .toast { background: #1e293b; color: #e2e8f0; border-color: #334155; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast .toast-ic { flex-shrink: 0; margin-top: 2px; font-size: 1rem; }
+        .toast-success { border-left: 4px solid #10b981; } .toast-success .toast-ic { color: #10b981; }
+        .toast-error   { border-left: 4px solid #ef4444; } .toast-error .toast-ic { color: #ef4444; }
+        .toast-warning { border-left: 4px solid #f59e0b; } .toast-warning .toast-ic { color: #f59e0b; }
+        .toast-info    { border-left: 4px solid #3b82f6; } .toast-info .toast-ic { color: #3b82f6; }
+        #confirm-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.55); z-index: 210; display: none; align-items: center; justify-content: center; padding: 1rem; }
+        #confirm-overlay.show { display: flex; }
     </style>
 </head>
 <body class="bg-slate-100 text-slate-900 dark:bg-darkBg dark:text-slate-100 font-sans no-copy" oncontextmenu="return false;">
@@ -121,6 +134,20 @@
             <i class="fas fa-moon"></i>
         </span>
     </label>
+</div>
+
+<div id="toast-container"></div>
+<div id="confirm-overlay">
+    <div class="bg-white dark:bg-darkCard rounded-3xl shadow-2xl p-7 max-w-sm w-full border border-slate-200 dark:border-darkBorder">
+        <div class="flex items-start gap-3 mb-5">
+            <div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center flex-shrink-0"><i class="fa-solid fa-circle-question text-amber-500"></i></div>
+            <p id="confirm-message" class="text-sm font-semibold text-slate-700 dark:text-slate-200 leading-relaxed pt-1"></p>
+        </div>
+        <div class="flex gap-3">
+            <button id="confirm-cancel" class="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold py-2.5 rounded-xl text-sm hover:bg-slate-200 dark:hover:bg-slate-600 transition">Hủy</button>
+            <button id="confirm-ok" class="flex-1 bg-rose-600 text-white font-bold py-2.5 rounded-xl text-sm hover:bg-rose-700 transition">Xác nhận</button>
+        </div>
+    </div>
 </div>
 
 <div id="loading-overlay" class="fixed inset-0 bg-white/90 dark:bg-darkBg/90 z-[100] flex-col items-center justify-center flex">
@@ -146,7 +173,7 @@
 
         <div class="login-box w-full md:w-1/2 max-w-md mx-auto md:mx-0">
             <h1 class="text-3xl font-black text-blue-800 text-center mb-2 tracking-tighter">EIU PHYSICS</h1>
-            <p class="text-center text-slate-500 mb-8 uppercase tracking-widest text-[10px] font-bold">Hệ thống khảo thí động</p>
+            <p class="text-center text-slate-500 mb-8 uppercase tracking-widest text-[10px] font-bold">Hệ thống Ôn tập & Khảo thí trực tuyến</p>
             <div class="space-y-4">
                 <input type="text" id="login-account" autocomplete="username" class="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Tài khoản">
                 <input type="password" id="login-password" autocomplete="current-password" class="w-full px-5 py-3 bg-slate-50 border border-slate-200 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500 transition" placeholder="Mật khẩu">
@@ -164,11 +191,11 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="bg-white dark:bg-darkCard p-6 rounded-3xl shadow-md border border-slate-200 dark:border-darkBorder">
-                <h3 class="font-black text-xs text-slate-400 uppercase tracking-widest mb-4">1. Ngân Hàng Đề & Thi Thử</h3>
+                <h3 class="font-black text-xs text-slate-400 uppercase tracking-widest mb-4">1. Ngân Hàng Đề & Ôn Tập Tổng Hợp</h3>
                 <input type="file" id="main-upload" accept=".md, .txt, .docx" class="hidden" onchange="handleFileUpload(event, 'main')">
                 <label for="main-upload" class="flex items-center justify-center p-3 mb-4 border-2 border-dashed border-blue-400 bg-blue-50 dark:bg-blue-900/10 rounded-xl cursor-pointer hover:bg-blue-100 dark:hover:bg-blue-900/20 transition font-bold text-blue-700 dark:text-blue-400 text-xs text-center">NẠP NGÂN HÀNG ĐỀ (.md)</label>
                 <div class="flex items-center justify-between bg-slate-50 p-3 rounded-xl border border-slate-100">
-                    <span class="font-bold text-xs text-slate-600">Trạng thái Thi thử:</span>
+                    <span class="font-bold text-xs text-slate-600">Trạng thái Ôn tập tổng hợp:</span>
                     <label class="relative inline-flex items-center cursor-pointer">
                         <input type="checkbox" id="toggle-exam-btn" class="sr-only peer">
                         <div class="w-9 h-5 bg-gray-200 rounded-full peer peer-checked:bg-emerald-500 peer-checked:after:translate-x-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all"></div>
@@ -177,7 +204,7 @@
             </div>
 
             <div class="bg-white p-6 rounded-3xl shadow-md border border-slate-200">
-                <h3 class="font-black text-xs text-slate-400 uppercase tracking-widest mb-4">2. Ma trận Thi thử</h3>
+                <h3 class="font-black text-xs text-slate-400 uppercase tracking-widest mb-4">2. Ma trận Ôn tập tổng hợp</h3>
                 <div id="matrix-config" class="space-y-3 max-h-32 overflow-y-auto custom-scrollbar pr-2">
                     <p class="text-xs text-slate-400 italic">Hãy nạp ngân hàng đề để thiết lập ma trận</p>
                 </div>
@@ -229,7 +256,7 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="bg-indigo-50/30 dark:bg-indigo-900/10 p-5 rounded-2xl border border-indigo-100 dark:border-darkBorder">
                     <label class="block text-xs font-black mb-2 uppercase tracking-tight">Mã Code xem lại đáp án:</label>
-                    <p class="text-[10px] text-slate-500 mb-3 italic">Áp dụng cho Ôn thi Giữa kì và Cuối kì. Thi thử và Luyện tập xem tự do.</p>
+                    <p class="text-[10px] text-slate-500 mb-3 italic">Áp dụng cho Kiểm tra thử Giữa kì và Cuối kì. Ôn tập tổng hợp và Luyện tập xem tự do.</p>
                     <input type="text" id="admin-review-code" class="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-indigo-200 dark:border-darkBorder rounded-xl outline-none font-mono font-bold text-indigo-700 dark:text-indigo-400 uppercase" placeholder="VD: EIU2026">
                 </div>
                 <div class="bg-slate-50 dark:bg-slate-800 p-5 rounded-2xl border border-slate-200 dark:border-darkBorder">
@@ -261,11 +288,19 @@
             <h3 class="font-black text-xs text-indigo-500 uppercase tracking-widest mb-1 flex items-center gap-2">
                 <i class="fa-solid fa-user-graduate"></i> Xuất dữ liệu điểm danh theo MSSV
             </h3>
-            <p class="text-[10px] text-slate-400 mb-4 italic">Xuất toàn bộ các buổi đã điểm danh của 1 sinh viên.</p>
+            <p class="text-[10px] text-slate-400 mb-4 italic">Xuất lịch sử điểm danh của 1 sinh viên. Có thể giới hạn theo khoảng thời gian — thống kê chỉ tính trong khoảng đã chọn.</p>
             <div class="flex flex-wrap gap-3 items-end">
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">MSSV</label>
                     <input type="text" id="att-export-mssv" placeholder="VD: 2021601234" class="px-4 py-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 font-bold text-xs outline-none w-52">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Từ ngày (tùy chọn)</label>
+                    <input type="date" id="att-export-from" class="px-4 py-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 font-bold text-xs outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Đến ngày (trống = hiện tại)</label>
+                    <input type="date" id="att-export-to" class="px-4 py-2 rounded-xl border border-indigo-200 dark:border-darkBorder bg-white dark:bg-slate-800 font-bold text-xs outline-none">
                 </div>
                 <button onclick="exportAttendanceByMssv('xlsx')" class="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase shadow-md transition flex items-center gap-2">
                     <i class="fa-solid fa-file-excel"></i> Xuất Excel
@@ -306,7 +341,7 @@
 
         <div class="bg-white dark:bg-darkCard rounded-3xl shadow-md overflow-hidden border border-slate-200 dark:border-darkBorder mt-6">
             <div class="bg-slate-50 dark:bg-slate-800 px-8 py-4 border-b border-slate-200 dark:border-darkBorder flex justify-between items-center">
-                <span class="font-bold text-slate-800 dark:text-slate-200 uppercase text-xs tracking-widest">Ngân hàng đề Thi Thử: <span id="admin-bank-status" class="text-blue-600 font-black">0</span> câu</span>
+                <span class="font-bold text-slate-800 dark:text-slate-200 uppercase text-xs tracking-widest">Ngân hàng đề Ôn tập tổng hợp: <span id="admin-bank-status" class="text-blue-600 font-black">0</span> câu</span>
                 <button onclick="clearBank()" class="text-[10px] font-black text-rose-500 uppercase hover:underline">Xóa tất cả</button>
             </div>
             <div id="admin-chapter-list" class="p-6 flex flex-wrap gap-3 border-b border-slate-100 dark:border-darkBorder bg-blue-50/20 dark:bg-blue-900/10"></div>
@@ -322,12 +357,12 @@
                     <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Loại dữ liệu</label>
                     <select id="export-source" onchange="toggleExportExamTypeFilter()" class="px-4 py-2 rounded-xl border border-slate-200 dark:border-darkBorder bg-white dark:bg-slate-800 font-bold text-xs outline-none">
                         <option value="practice">Luyện tập tự do</option>
-                        <option value="onthi">Ôn thi (Giữa kì/Cuối kì)</option>
-                        <option value="exam">Thi thử</option>
+                        <option value="onthi">Kiểm tra thử (Giữa kì/Cuối kì)</option>
+                        <option value="exam">Ôn tập tổng hợp</option>
                     </select>
                 </div>
                 <div id="export-examtype-wrap" class="hidden">
-                    <label class="block text-[10px] font-bold text-amber-500 uppercase mb-1">Loại đề Ôn thi</label>
+                    <label class="block text-[10px] font-bold text-amber-500 uppercase mb-1">Loại đề Kiểm tra thử</label>
                     <select id="export-examtype" class="px-4 py-2 rounded-xl border border-amber-200 dark:border-darkBorder bg-white dark:bg-slate-800 font-bold text-xs outline-none text-amber-700">
                         <option value="ALL">Cả Giữa kì & Cuối kì</option>
                         <option value="midterm">Chỉ Giữa kì</option>
@@ -360,7 +395,7 @@
             <h3 class="font-black text-xs text-indigo-500 uppercase tracking-widest mb-1 flex items-center gap-2">
                 <i class="fa-solid fa-user-graduate"></i> Báo cáo tổng hợp theo MSSV
             </h3>
-            <p class="text-[10px] text-slate-400 mb-4 italic">Gộp toàn bộ lượt làm bài của 1 sinh viên (Luyện tập + Ôn thi + Thi thử) vào 1 bảng duy nhất.</p>
+            <p class="text-[10px] text-slate-400 mb-4 italic">Gộp toàn bộ lượt làm bài của 1 sinh viên (Luyện tập + Kiểm tra thử + Ôn tập tổng hợp) vào 1 bảng duy nhất.</p>
             <div class="flex flex-wrap gap-3 items-end">
                 <div>
                     <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">MSSV</label>
@@ -391,7 +426,7 @@
         <div class="grid grid-cols-1 gap-6 mt-2">
             <div class="bg-white dark:bg-darkCard rounded-3xl shadow-md overflow-hidden border border-amber-200 dark:border-darkBorder">
                 <div class="bg-amber-100 dark:bg-amber-900/30 px-6 py-4 text-amber-900 dark:text-amber-400 font-bold text-xs uppercase tracking-widest flex justify-between items-center border-b border-amber-200 dark:border-darkBorder">
-                    <span>Kết quả Ôn Thi (Giữa kì / Cuối kì)</span>
+                    <span>Kết quả Kiểm tra thử (Giữa kì / Cuối kì)</span>
                     <span id="onthi-count" class="text-[10px] bg-amber-200 dark:bg-amber-900 px-2 py-1 rounded-full font-mono">0 lượt</span>
                 </div>
                 <div class="overflow-x-auto custom-scrollbar max-h-80">
@@ -414,7 +449,7 @@
 
             <div class="bg-white dark:bg-darkCard rounded-3xl shadow-md overflow-hidden border border-blue-200 dark:border-darkBorder">
                 <div class="bg-blue-900 dark:bg-blue-900/40 px-6 py-4 text-white font-bold text-xs uppercase tracking-widest flex justify-between items-center border-b dark:border-darkBorder">
-                    <span>Kết quả Thi thử (Ngẫu nhiên Ma trận)</span>
+                    <span>Kết quả Ôn tập tổng hợp (Ngẫu nhiên Ma trận)</span>
                     <span id="exam-count" class="text-[10px] bg-blue-800 dark:bg-blue-900 px-2 py-1 rounded-full font-mono">0 lượt</span>
                 </div>
                 <div class="overflow-x-auto custom-scrollbar max-h-80">
@@ -468,7 +503,7 @@
             <div id="attendance-panel" class="mb-6 p-5 rounded-3xl border-2 border-dashed border-indigo-200 bg-indigo-50/40 dark:bg-indigo-900/10 dark:border-indigo-800 flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="text-left">
                     <h3 class="font-black text-indigo-800 dark:text-indigo-300 flex items-center gap-2"><i class="fa-solid fa-location-dot"></i> Điểm danh buổi học</h3>
-                    <p id="attendance-status" class="text-xs text-slate-500 mt-1">Bấm nút để điểm danh — hệ thống sẽ kiểm tra vị trí của bạn.</p>
+                    <p id="attendance-status" class="text-xs text-slate-500 mt-1">Nhấn nút để điểm danh. Hệ thống sẽ tự xác định vị trí và khung giờ buổi học của bạn.</p>
                 </div>
                 <button onclick="doCheckin()" id="btn-checkin" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-6 py-3 rounded-2xl shadow-md transition active:scale-95 text-sm whitespace-nowrap">
                     <i class="fa-solid fa-location-crosshairs mr-2"></i>Điểm danh ngay
@@ -480,7 +515,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="font-black text-rose-700 dark:text-rose-400 flex items-center gap-2 text-sm"><i class="fa-solid fa-triangle-exclamation"></i> Báo vắng buổi học</h3>
-                        <p class="text-xs text-slate-500 mt-1">Báo trước hoặc trong ngày học. Vắng có phép sẽ được ghi nhận.</p>
+                        <p class="text-xs text-slate-500 mt-1">Gửi đơn xin phép trước hoặc trong ngày diễn ra buổi học. Trường hợp vắng có phép sẽ được ghi nhận đầy đủ.</p>
                     </div>
                     <button onclick="toggleAbsenceForm()" class="text-xs font-bold text-rose-600 border border-rose-300 px-4 py-2 rounded-xl hover:bg-rose-100 transition whitespace-nowrap">Báo vắng</button>
                 </div>
@@ -506,7 +541,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h3 class="font-black text-amber-700 dark:text-amber-400 flex items-center gap-2 text-sm"><i class="fa-solid fa-arrows-rotate"></i> Điểm danh học bù</h3>
-                        <p class="text-xs text-slate-500 mt-1">Đổi ca học trong cùng ngày. Chọn buổi bù phù hợp với lịch của bạn.</p>
+                        <p class="text-xs text-slate-500 mt-1">Dùng khi bạn học bù sang ca khác trong ngày. Chọn buổi đang diễn ra để điểm danh.</p>
                     </div>
                     <button onclick="toggleMakeupForm()" class="text-xs font-bold text-amber-600 border border-amber-300 px-4 py-2 rounded-xl hover:bg-amber-100 transition whitespace-nowrap">Học bù</button>
                 </div>
@@ -544,14 +579,14 @@
                     <div>
                         <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center mb-4 text-blue-600 font-black italic">01</div>
                         <h3 class="font-black text-lg text-blue-900">Luyện tập</h3>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Ôn tập theo từng chương. Không giới hạn thời gian.</p>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Ôn tập tự do theo từng chương — không giới hạn thời gian và số lần làm.</p>
                     </div>
                 </button>
                 <div class="p-6 rounded-3xl border-2 border-slate-100 dark:border-darkBorder bg-amber-50/30 dark:bg-amber-900/10 text-left flex flex-col gap-4">
                     <div>
                         <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center mb-4 text-amber-600 font-black italic">02</div>
-                        <h3 class="font-black text-lg text-amber-900">Thi thử</h3>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed mb-4">Phần thi thử Giữa kì / Cuối kì (Dùng để ôn tập vào giữa và cuối kỳ trên lớp, có tính điểm cộng).</p>
+                        <h3 class="font-black text-lg text-amber-900">Kiểm tra thử Giữa kỳ/Cuối kỳ</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed mb-4">Bài kiểm tra thử Giữa kì / Cuối kì thực hiện trên lớp.</p>
                     </div>
                     <div class="flex gap-2">
                         <button onclick="startMode('midterm')" class="flex-1 bg-amber-500 text-white text-[10px] font-bold py-2 rounded-lg hover:bg-amber-600 uppercase transition shadow-sm">Giữa kì</button>
@@ -562,8 +597,8 @@
                 <button onclick="startMode('exam')" class="p-6 rounded-3xl border-2 border-slate-100 hover:border-emerald-500 hover:bg-emerald-50 transition text-left flex flex-col justify-between">
                     <div>
                         <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center mb-4 text-emerald-600 font-black italic">03</div>
-                        <h3 class="font-black text-lg text-emerald-900">Ôn thi</h3>
-                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Đề thi gồm 20 câu thực hiện trong 60 phút dành cho sinh viên tự ôn thi giữa kỳ và cuối kỳ tại nhà.</p>
+                        <h3 class="font-black text-lg text-emerald-900">Ôn tập tổng hợp</h3>
+                        <p class="text-xs text-slate-500 mt-2 leading-relaxed">Đề tổng hợp 20 câu, thời gian 60 phút, tạo ngẫu nhiên theo ma trận. Dùng để tự luyện thi tại nhà.</p>
                     </div>
                 </button>
             </div>
@@ -616,6 +651,40 @@
     const CONFIG = {
         GOOGLE_URL: "https://script.google.com/macros/s/AKfycbyeZZH_74Pb3sigZiJeFuOZitmQwz5TOQ_zM8-Ys8zfaXjisKMDxHCNN-KheNaxP_AIqg/exec"
     };
+
+    // ===== Toast (thay alert) =====
+    function showToast(message, type) {
+        const m = String(message);
+        if (!type) {
+            if (/❌|Lỗi|thất bại|không đúng|không chính xác/i.test(m)) type = 'error';
+            else if (/Vui lòng|chưa |Không tìm|Không có|Không lấy|không hợp lệ|không hỗ trợ|quá /i.test(m)) type = 'warning';
+            else if (/✅|thành công|Đã /i.test(m)) type = 'success';
+            else type = 'info';
+        }
+        const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', warning: 'fa-triangle-exclamation', info: 'fa-circle-info' };
+        const c = document.getElementById('toast-container');
+        if (!c) { console.log(m); return; }
+        const el = document.createElement('div');
+        el.className = 'toast toast-' + type;
+        el.innerHTML = '<i class="fa-solid ' + (icons[type] || icons.info) + ' toast-ic"></i><span>' + m.replace(/\n/g, '<br>') + '</span>';
+        c.appendChild(el);
+        requestAnimationFrame(() => el.classList.add('show'));
+        setTimeout(() => { el.classList.remove('show'); setTimeout(() => el.remove(), 320); }, 4200);
+    }
+
+    // ===== Confirm (thay confirm) =====
+    function showConfirm(message) {
+        return new Promise(resolve => {
+            const ov = document.getElementById('confirm-overlay');
+            document.getElementById('confirm-message').innerText = message;
+            const ok = document.getElementById('confirm-ok');
+            const cancel = document.getElementById('confirm-cancel');
+            const done = (val) => { ov.classList.remove('show'); ok.onclick = null; cancel.onclick = null; resolve(val); };
+            ok.onclick = () => done(true);
+            cancel.onclick = () => done(false);
+            ov.classList.add('show');
+        });
+    }
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
     let adminToken = ""; // Token phiên Admin, cấp bởi server sau khi đăng nhập đúng, gửi kèm mọi request Admin
@@ -721,10 +790,10 @@
         violations++; 
         document.getElementById('violation-count').innerText = violations;
         
-        alert("⚠️ CẢNH BÁO GIAN LẬN (" + violations + "/5 lần) ⚠️\n\n" + reason);
+        showToast("Hệ thống ghi nhận thao tác rời khỏi màn hình làm bài (" + violations + "/5 lần).\n" + reason, 'warning');
         
         if (violations >= 5) { 
-            alert("Bạn đã vi phạm 5 lần. Hệ thống tự động thu bài!"); 
+            showToast("Đã vượt quá số lần cảnh báo cho phép. Hệ thống sẽ tự động nộp bài.", 'error'); 
             submitTest(); 
         }
         
@@ -818,7 +887,7 @@
     async function handleLogin() {
         const account = document.getElementById('login-account').value.trim();
         const password = document.getElementById('login-password').value.trim();
-        if (!account || !password) return alert("Vui lòng điền đủ Tài khoản và Mật khẩu.");
+        if (!account || !password) return showToast("Vui lòng điền đủ Tài khoản và Mật khẩu.");
 
         // Nếu dữ liệu hệ thống (câu hỏi, cấu hình...) chưa tải xong kịp (do Apps Script cold-start
         // chậm), chờ thêm một chút trước khi vào — thường đã tải xong ngay trong lúc gõ tài khoản.
@@ -844,7 +913,7 @@
 
             if (!result.success) {
                 hideLoading();
-                return alert(result.message || "Tài khoản hoặc mật khẩu không đúng.");
+                return showToast(result.message || "Tài khoản hoặc mật khẩu không đúng.");
             }
 
             if (result.isAdmin) {
@@ -856,7 +925,7 @@
                     let dashData = await dashRes.json();
                     if (dashData.success === false) {
                         hideLoading();
-                        return alert(dashData.message || "Không thể tải dữ liệu Admin.");
+                        return showToast(dashData.message || "Không thể tải dữ liệu Admin.");
                     }
                     globalPracticeData = dashData.practice || [];
                     globalExamData = dashData.exam || [];
@@ -880,7 +949,7 @@
                     populateAttendanceConfigUI();
                     updateAdminUI();
                     renderDashboards(globalPracticeData, globalExamData, globalOnThiData);
-                } catch(e) { alert("Lỗi kết nối Admin."); }
+                } catch(e) { showToast("Lỗi kết nối Admin."); }
                 hideLoading();
                 return;
             }
@@ -899,12 +968,12 @@
             populateMakeupSessionSelect();
         } catch(e) {
             hideLoading();
-            alert("Lỗi kết nối hệ thống. Vui lòng thử lại.");
+            showToast("Lỗi kết nối hệ thống. Vui lòng thử lại.");
         }
     }
     // 3. LOGIC SINH VIÊN
     function showChapterSelector() {
-        if (questionBank.length === 0) return alert("Hệ thống chưa có ngân hàng luyện tập.");
+        if (questionBank.length === 0) return showToast("Hệ thống chưa có ngân hàng luyện tập.");
         document.getElementById('chapter-selector').classList.toggle('hidden');
     }
 
@@ -971,12 +1040,12 @@
     async function submitAbsence() {
         const selEl = document.getElementById('absence-session-select');
         const reason = document.getElementById('absence-reason').value.trim();
-        if (!selEl.value && selEl.value !== '0') return alert("Vui lòng chọn buổi vắng.");
-        if (!reason) return alert("Vui lòng nhập lý do vắng.");
+        if (!selEl.value && selEl.value !== '0') return showToast("Vui lòng chọn buổi vắng.");
+        if (!reason) return showToast("Vui lòng nhập lý do vắng.");
 
         const sessions = (globalAttendanceConfig.sessions || []).filter(s => s.enabled && s.className === currentUser.className);
         const sess = sessions[parseInt(selEl.value)];
-        if (!sess) return alert("Không tìm thấy buổi học. Vui lòng thử lại.");
+        if (!sess) return showToast("Không tìm thấy buổi học. Vui lòng thử lại.");
 
         const WD = {'2':'Thứ 2','3':'Thứ 3','4':'Thứ 4','5':'Thứ 5','6':'Thứ 6','7':'Thứ 7','0':'Chủ nhật'};
         const sessionLabel = `${WD[sess.weekday]||sess.weekday} ${getNextWeekdayDate(sess.weekday).label} | ${sess.startTime}–${sess.endTime}`;
@@ -1005,7 +1074,7 @@
             document.getElementById('absence-reason').value = '';
         } catch(e) {
             hideLoading();
-            alert("Lỗi kết nối. Vui lòng thử lại.");
+            showToast("Lỗi kết nối. Vui lòng thử lại.");
         }
     }
 
@@ -1045,16 +1114,16 @@
         const sel = document.getElementById('makeup-session-select');
         const statusEl = document.getElementById('makeup-status');
         const btn = document.getElementById('btn-makeup');
-        if (!sel.value && sel.value !== '0') return alert("Vui lòng chọn buổi học bù.");
+        if (!sel.value && sel.value !== '0') return showToast("Vui lòng chọn buổi học bù.");
 
         const todayWd = ['0','2','3','4','5','6','7'][new Date().getDay()];
         const makeupSessions = (globalAttendanceConfig.sessions || []).filter(s =>
             s.enabled && s.className !== currentUser.className && s.weekday === todayWd
         );
         const sess = makeupSessions[parseInt(sel.value)];
-        if (!sess) return alert("Không tìm thấy buổi học bù. Vui lòng thử lại.");
+        if (!sess) return showToast("Không tìm thấy buổi học bù. Vui lòng thử lại.");
 
-        if (!navigator.geolocation) return alert("Thiết bị không hỗ trợ định vị.");
+        if (!navigator.geolocation) return showToast("Thiết bị không hỗ trợ định vị.");
 
         btn.disabled = true;
         btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i>Đang xác định vị trí...`;
@@ -1162,9 +1231,9 @@
     }
     // --- CORE LOGIC LÀM BÀI ---
 async function startMode(mode) {
-        if (mode === 'midterm' && !isMidtermUnlocked) return alert("Phòng thi chưa mở.");
-        if (mode === 'final' && !isFinalUnlocked) return alert("Phòng thi chưa mở.");
-        if (mode === 'exam' && !isExamUnlocked) return alert("Phòng thi chưa mở.");
+        if (mode === 'midterm' && !isMidtermUnlocked) return showToast("Phòng thi chưa mở.");
+        if (mode === 'final' && !isFinalUnlocked) return showToast("Phòng thi chưa mở.");
+        if (mode === 'exam' && !isExamUnlocked) return showToast("Phòng thi chưa mở.");
 
         // Giữa kỳ/Cuối kỳ: kiểm tra thêm đúng khung giờ buổi học + đã điểm danh (thường hoặc học bù)
         if (mode === 'midterm' || mode === 'final') {
@@ -1177,11 +1246,11 @@ async function startMode(mode) {
                 const result = await res.json();
                 hideLoading();
                 if (!result.success) {
-                    return alert(result.message || "Bạn chưa đủ điều kiện vào thi.");
+                    return showToast(result.message || "Bạn chưa đủ điều kiện vào thi.");
                 }
             } catch(e) {
                 hideLoading();
-                return alert("Lỗi kết nối. Vui lòng thử lại.");
+                return showToast("Lỗi kết nối. Vui lòng thử lại.");
             }
         }
 
@@ -1316,11 +1385,11 @@ function submitTest() {
             const res = await fetch(CONFIG.GOOGLE_URL, { method: 'POST', body: JSON.stringify(payload) });
             const result = await res.json().catch(() => ({}));
             if (result.success === false) {
-                alert(result.message || "Lưu thất bại.");
+                showToast(result.message || "Lưu thất bại.");
             } else {
-                alert("Đã lưu!");
+                showToast("Đã lưu!");
             }
-        } catch(e) { alert("Lỗi mạng."); }
+        } catch(e) { showToast("Lỗi mạng."); }
         hideLoading();
     }
 
@@ -1408,8 +1477,8 @@ function submitTest() {
         renderAttSessionList();
     }
 
-    function removeAttSession(idx) {
-        if (!confirm('Xóa buổi điểm danh này?')) return;
+    async function removeAttSession(idx) {
+        if (!(await showConfirm('Xóa buổi điểm danh này?'))) return;
         attSessions.splice(idx, 1);
         renderAttSessionList();
     }
@@ -1423,13 +1492,13 @@ function submitTest() {
     }
 
     function fillCurrentLocation(idx) {
-        if (!navigator.geolocation) return alert("Thiết bị không hỗ trợ định vị.");
+        if (!navigator.geolocation) return showToast("Thiết bị không hỗ trợ định vị.");
         navigator.geolocation.getCurrentPosition(pos => {
             attSessions[idx].lat = pos.coords.latitude.toString();
             attSessions[idx].lon = pos.coords.longitude.toString();
             renderAttSessionList();
-            alert(`Đã lấy tọa độ: ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`);
-        }, () => alert("Không lấy được vị trí. Hãy tự nhập tọa độ thủ công."), { enableHighAccuracy: true });
+            showToast(`Đã lấy tọa độ: ${pos.coords.latitude.toFixed(6)}, ${pos.coords.longitude.toFixed(6)}`);
+        }, () => showToast("Không lấy được vị trí. Hãy tự nhập tọa độ thủ công."), { enableHighAccuracy: true });
     }
 
     function populateAttendanceConfigUI() {
@@ -1448,7 +1517,7 @@ function submitTest() {
 
     async function saveAttendanceConfig() {
         const invalid = attSessions.filter(s => s.enabled && (!s.startTime || !s.endTime || !s.lat || !s.lon));
-        if (invalid.length > 0) return alert("Có buổi đang bật nhưng chưa điền đầy đủ giờ và tọa độ. Vui lòng kiểm tra lại.");
+        if (invalid.length > 0) return showToast("Có buổi đang bật nhưng chưa điền đầy đủ giờ và tọa độ. Vui lòng kiểm tra lại.");
 
         const attendanceConfig = { sessions: attSessions };
         showLoading("Đang lưu cài đặt điểm danh...");
@@ -1456,13 +1525,13 @@ function submitTest() {
             const res = await fetch(CONFIG.GOOGLE_URL, { method: 'POST', body: JSON.stringify({ action: "saveAttendanceConfig", adminToken, attendance: attendanceConfig }) });
             const result = await res.json().catch(() => ({}));
             if (result.success === false) {
-                alert(result.message || "Lưu thất bại.");
+                showToast(result.message || "Lưu thất bại.");
             } else {
                 globalAttendanceConfig = attendanceConfig;
-                alert("Đã lưu cài đặt điểm danh!");
+                showToast("Đã lưu cài đặt điểm danh!");
             }
         } catch(e) {
-            alert("Lỗi mạng khi lưu cài đặt điểm danh.");
+            showToast("Lỗi mạng khi lưu cài đặt điểm danh.");
         }
         hideLoading();
     }
@@ -1478,7 +1547,7 @@ function submitTest() {
     function showReview() {
         if ((testMode === 'midterm' || testMode === 'final') && globalReviewCode && globalReviewCode.trim() !== "") {
             if (prompt("🔒 BÀI THI ĐƯỢC BẢO MẬT\nVui lòng nhập mã code do Giảng viên cung cấp để xem lại đáp án:") !== globalReviewCode.trim()) {
-                return alert("❌ Mã code không chính xác! Thầy/cô chưa cho phép xem đáp án bài thi này.");
+                return showToast("Mã xác thực không đúng. Giảng viên chưa mở quyền xem đáp án cho bài thi này.", 'error');
             }
         }
         document.getElementById('result-screen').classList.add('hidden'); document.getElementById('review-screen').classList.remove('hidden');
@@ -1603,9 +1672,9 @@ async function handleFileUpload(event, targetBank) {
         });
         if (curQ) newBank.push(curQ);
 
-        if (targetBank === 'main') { questionBank = questionBank.concat(newBank); updateAdminUI(); alert(`Đã nạp ${newBank.length} câu.`); } 
-        else if (targetBank === 'midterm') { midtermBank = newBank; document.getElementById('midterm-status').innerText = `(${midtermBank.length})`; alert(`Đã nạp ${newBank.length} câu.`); } 
-        else if (targetBank === 'final') { finalBank = newBank; document.getElementById('final-status').innerText = `(${finalBank.length})`; alert(`Đã nạp ${newBank.length} câu.`); }
+        if (targetBank === 'main') { questionBank = questionBank.concat(newBank); updateAdminUI(); showToast(`Đã nạp ${newBank.length} câu.`); } 
+        else if (targetBank === 'midterm') { midtermBank = newBank; document.getElementById('midterm-status').innerText = `(${midtermBank.length})`; showToast(`Đã nạp ${newBank.length} câu.`); } 
+        else if (targetBank === 'final') { finalBank = newBank; document.getElementById('final-status').innerText = `(${finalBank.length})`; showToast(`Đã nạp ${newBank.length} câu.`); }
     }
     function applyFilter() {
         const fClass = document.getElementById('class-filter').value;
@@ -1689,7 +1758,7 @@ function registerVietnameseFont(doc) {
             rows = rows.filter(r => r[7] && r[7].toString().trim().toLowerCase() === targetType);
         }
 
-        let sourceLabel = source === 'practice' ? 'Luyện tập tự do' : (source === 'exam' ? 'Thi thử' : 'Ôn thi (Giữa kì/Cuối kì)');
+        let sourceLabel = source === 'practice' ? 'Luyện tập tự do' : (source === 'exam' ? 'Ôn tập tổng hợp' : 'Kiểm tra thử (Giữa kì/Cuối kì)');
         if (source === 'onthi' && fExamType !== 'ALL') {
             sourceLabel = fExamType === 'midterm' ? 'Ôn thi - Giữa kì' : 'Ôn thi - Cuối kì';
         }
@@ -1706,7 +1775,7 @@ function registerVietnameseFont(doc) {
         const { headers, rows, sourceLabel, fClass, fMssv } = getFilteredExportData();
 
         if (rows.length === 0) {
-            return alert("Không có dữ liệu phù hợp với bộ lọc để xuất.");
+            return showToast("Không có dữ liệu phù hợp với bộ lọc để xuất.");
         }
 
         const exportTime = new Date().toLocaleString('vi-VN');
@@ -1777,7 +1846,7 @@ function registerVietnameseFont(doc) {
         // Thi thử: [submitTime, name, mssv, className, score, duration, violations]
         globalExamData.forEach(r => {
             if (r[2] && r[2].toString().trim().toLowerCase() === target) {
-                examRows.push([r[0], "Thi thử", r[1], r[2], r[3], r[4], r[5], `Vi phạm: ${r[6]}`]);
+                examRows.push([r[0], "Ôn tập tổng hợp", r[1], r[2], r[3], r[4], r[5], `Vi phạm: ${r[6]}`]);
             }
         });
 
@@ -1797,11 +1866,11 @@ function registerVietnameseFont(doc) {
     async function exportCombinedByMssv(format) {
         await ensureExportLibs();
         const mssvInput = document.getElementById('export-mssv-combined').value.trim();
-        if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất báo cáo.");
+        if (!mssvInput) return showToast("Vui lòng nhập MSSV cần xuất báo cáo.");
 
         const rows = buildCombinedRowsByMssv(mssvInput);
         if (rows.length === 0) {
-            return alert("Không tìm thấy dữ liệu làm bài nào cho MSSV này.");
+            return showToast("Không tìm thấy dữ liệu làm bài nào cho MSSV này.");
         }
 
         const headers = ["Thời gian nộp", "Hình thức", "Họ tên", "MSSV", "Lớp", "Điểm", "Thời lượng", "Ghi chú"];
@@ -1879,12 +1948,12 @@ function registerVietnameseFont(doc) {
     async function exportAttendanceByMssv(format) {
         await ensureExportLibs();
         const mssvInput = document.getElementById('att-export-mssv').value.trim();
-        if (!mssvInput) return alert("Vui lòng nhập MSSV cần xuất dữ liệu điểm danh.");
+        if (!mssvInput) return showToast("Vui lòng nhập MSSV cần xuất dữ liệu điểm danh.");
         const target = mssvInput.toLowerCase();
 
         // Tìm sinh viên trong danh sách gốc để biết đúng Lớp + Họ tên
         const rosterEntry = globalStudentRoster.find(r => r[0] && r[0].toString().trim().toLowerCase() === target);
-        if (!rosterEntry) return alert("Không tìm thấy MSSV này trong danh sách sinh viên.");
+        if (!rosterEntry) return showToast("Không tìm thấy MSSV này trong danh sách sinh viên.");
         const studentName = rosterEntry[1];
         const cls = rosterEntry[2].toString().trim();
 
@@ -1893,30 +1962,46 @@ function registerVietnameseFont(doc) {
             (globalAttendanceConfig.sessions || []).filter(s => s.enabled && s.className === cls).map(s => s.weekday)
         );
         if (classWeekdays.size === 0) {
-            return alert("Lớp này chưa được cấu hình buổi điểm danh nào (Thứ/giờ), không thể xác định lịch học.");
+            return showToast("Lớp này chưa được cấu hình buổi điểm danh nào (Thứ/giờ), không thể xác định lịch học.");
         }
 
-        // Xác định ngày bắt đầu báo cáo = ngày sớm nhất có dữ liệu điểm danh/báo vắng của LỚP này
+        // Ngày đầu tiên của báo cáo = ngày ĐIỂM DANH sớm nhất của LỚP này (= ngày khai giảng/nhập học của lớp).
+        // Lấy theo lớp, KHÔNG theo SV đang xét -> nếu SV vắng buổi đầu thì buổi đó vẫn bị tính "Vắng không phép".
         let earliestYmd = null;
+        // Nguồn chính: các lượt điểm danh của lớp
         globalAttendanceData.forEach(r => {
             if (r[6] && r[6].toString().startsWith(cls + "_")) {
                 const ymd = parseAttendanceDate(r[0]);
                 if (ymd && (!earliestYmd || ymd < earliestYmd)) earliestYmd = ymd;
             }
         });
+        // Nguồn phụ: báo vắng của lớp (phòng khi buổi đầu tất cả đều báo vắng, chưa ai điểm danh)
         (globalAbsenceData || []).forEach(r => {
             if (r[3] && r[3].toString().trim() === cls) {
                 const ymd = extractDateFromSessionLabel(r[4]);
                 if (ymd && (!earliestYmd || ymd < earliestYmd)) earliestYmd = ymd;
             }
         });
+        // Dự phòng: lớp chưa có dữ liệu -> lấy ngày điểm danh sớm nhất của TOÀN HỆ THỐNG
         if (!earliestYmd) {
-            return alert("Lớp này chưa có dữ liệu điểm danh hoặc báo vắng nào để xác định ngày bắt đầu báo cáo.");
+            globalAttendanceData.forEach(r => {
+                const ymd = parseAttendanceDate(r[0]);
+                if (ymd && (!earliestYmd || ymd < earliestYmd)) earliestYmd = ymd;
+            });
         }
-
         const todayYmd = dateToYmd(new Date());
-        const startDate = ymdToDate(earliestYmd);
-        const endDate = ymdToDate(todayYmd);
+        const fromInput = document.getElementById('att-export-from').value; // yyyy-MM-dd hoặc ''
+        const toInput = document.getElementById('att-export-to').value;     // yyyy-MM-dd hoặc ''
+        const startYmd = fromInput || earliestYmd;
+        const endYmd = toInput || todayYmd;
+        if (!startYmd) {
+            return showToast("Lớp này chưa có dữ liệu điểm danh/báo vắng và bạn chưa chọn 'Từ ngày'. Vui lòng chọn ngày bắt đầu.", 'warning');
+        }
+        if (startYmd > endYmd) {
+            return showToast("Khoảng thời gian không hợp lệ: 'Từ ngày' phải trước hoặc bằng 'Đến ngày'.", 'warning');
+        }
+        const startDate = ymdToDate(startYmd);
+        const endDate = ymdToDate(endYmd);
 
         // Liệt kê từng ngày từ ngày bắt đầu đến hôm nay, chỉ giữ lại đúng các ngày khớp Thứ có lịch học
         const rows = [];
@@ -1958,7 +2043,7 @@ function registerVietnameseFont(doc) {
         }
 
         if (rows.length === 0) {
-            return alert("Không có buổi học nào trong khoảng thời gian được ghi nhận.");
+            return showToast("Không có buổi học nào trong khoảng thời gian được ghi nhận.");
         }
 
         const headers = ["Ngày", "Trạng thái", "Ghi chú / Lý do", "Thời gian điểm danh", "Khoảng cách", "Tọa độ"];
@@ -1970,7 +2055,7 @@ function registerVietnameseFont(doc) {
             const wb = XLSX.utils.book_new();
             const infoRows = [
                 [`Lịch sử điểm danh - Sinh viên: ${studentName} (MSSV: ${mssvInput}) - Lớp: ${cls}`],
-                [`Khoảng thời gian: ${ymdToDisplay(earliestYmd)} - ${ymdToDisplay(todayYmd)}`],
+                [`Khoảng thời gian: ${ymdToDisplay(startYmd)} - ${ymdToDisplay(endYmd)}`],
                 [`Thời gian xuất dữ liệu: ${exportTime}`],
                 [summaryLine],
                 []
@@ -1986,7 +2071,7 @@ function registerVietnameseFont(doc) {
             doc.setFontSize(14);
             doc.text(`Lịch sử điểm danh: ${studentName} (MSSV: ${mssvInput}) - Lớp: ${cls}`, 14, 15);
             doc.setFontSize(9);
-            doc.text(`Khoảng thời gian: ${ymdToDisplay(earliestYmd)} - ${ymdToDisplay(todayYmd)}`, 14, 22);
+            doc.text(`Khoảng thời gian: ${ymdToDisplay(startYmd)} - ${ymdToDisplay(endYmd)}`, 14, 22);
             doc.text(`Thời gian xuất: ${exportTime}`, 14, 27);
             doc.text(summaryLine, 14, 32);
             doc.autoTable({
@@ -2010,7 +2095,7 @@ function registerVietnameseFont(doc) {
         await ensureExportLibs();
         const cls = document.getElementById('att-export-class').value;
         const dateInput = document.getElementById('att-export-date').value; // yyyy-MM-dd
-        if (!dateInput) return alert("Vui lòng chọn ngày cần xuất.");
+        if (!dateInput) return showToast("Vui lòng chọn ngày cần xuất.");
 
         // Lọc điểm danh theo lớp + ngày (sessionId có dạng "V1_2026-06-24_HH:mm" hoặc "V1_2026-06-24_HH:mm_makeup")
         const checkedInRows = globalAttendanceData.filter(r => {
@@ -2028,7 +2113,7 @@ function registerVietnameseFont(doc) {
 
         const classRoster = globalStudentRoster.filter(r => r[2] && r[2].toString().trim() === cls);
         if (classRoster.length === 0) {
-            return alert("Không tìm thấy danh sách sinh viên cho lớp này. Hãy kiểm tra sheet DanhSachSV.");
+            return showToast("Không tìm thấy danh sách sinh viên cho lớp này. Hãy kiểm tra sheet DanhSachSV.");
         }
 
         const rows = classRoster.map(r => {
@@ -2109,22 +2194,22 @@ function registerVietnameseFont(doc) {
 
     function hideReview() { document.getElementById('review-screen').classList.add('hidden'); document.getElementById('result-screen').classList.remove('hidden'); }
     function backToHome() { document.getElementById('result-screen').classList.add('hidden'); document.getElementById('mode-screen').classList.remove('hidden'); }
-    function deleteQuestion(index) {
-        if (!confirm(`Xóa câu hỏi số ${index + 1}?`)) return;
+    async function deleteQuestion(index) {
+        if (!(await showConfirm(`Xóa câu hỏi số ${index + 1}?`))) return;
         questionBank.splice(index, 1);
         updateAdminUI();
     }
 
-    function clearBank() {
-        if (!confirm("Xóa toàn bộ ngân hàng đề Thi thử? Hành động này không thể hoàn tác!")) return;
+    async function clearBank() {
+        if (!(await showConfirm("Xóa toàn bộ ngân hàng đề Ôn tập tổng hợp? Hành động này không thể hoàn tác!"))) return;
         questionBank = [];
         examMatrix = {};
         updateAdminUI();
-        alert("Đã xóa toàn bộ ngân hàng đề.");
+        showToast("Đã xóa toàn bộ ngân hàng đề.");
     }
-    function clearSpecificBank(type) {
+    async function clearSpecificBank(type) {
         const label = type === 'midterm' ? 'Giữa kì' : 'Cuối kì';
-        if (!confirm(`Xóa toàn bộ ngân hàng đề ${label}?`)) return;
+        if (!(await showConfirm(`Xóa toàn bộ ngân hàng đề ${label}?`))) return;
         if (type === 'midterm') {
             midtermBank = [];
             document.getElementById('midterm-status').innerText = '(0)';
@@ -2132,7 +2217,7 @@ function registerVietnameseFont(doc) {
             finalBank = [];
             document.getElementById('final-status').innerText = '(0)';
         }
-        alert(`Đã xóa ngân hàng đề ${label}.`);
+        showToast(`Đã xóa ngân hàng đề ${label}.`);
     }
 </script>
 </body>
