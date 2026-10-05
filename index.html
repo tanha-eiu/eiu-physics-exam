@@ -649,7 +649,7 @@
 <script>
     // THẦY DÁN LINK WEB APP CỦA GOOGLE APPS SCRIPT VÀO ĐÂY
     const CONFIG = {
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbyeZZH_74Pb3sigZiJeFuOZitmQwz5TOQ_zM8-Ys8zfaXjisKMDxHCNN-KheNaxP_AIqg/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbzjhu8sPCNI_njP34nNzyPWR1NOQaSfV3Jkh2Lox6rd5PPUGm2IhlWaafyOBwYMOm65kg/exec"
     };
 
     // ===== Toast (thay alert) =====
@@ -832,7 +832,7 @@
         // Ẩn màn hình loading NGAY LẬP TỨC — không chờ Apps Script (có thể mất vài giây do cold-start).
         // Form đăng nhập hiện ra ngay; dữ liệu hệ thống được tải ngầm phía sau.
         hideLoading();
-        fetchSystemDataInBackground();
+        bootstrapSystem();
     }
 
     function showCachedAnnouncement() {
@@ -845,43 +845,99 @@
         }
     }
 
-    async function fetchSystemDataInBackground() {
-        try {
-            let sysRes = await fetch(CONFIG.GOOGLE_URL + "?action=getSystemData");
-            let sysData = await sysRes.json();
-            questionBank = sysData.questions || [];
-            midtermBank = sysData.midtermBank || [];
-            finalBank = sysData.finalBank || [];
-            isExamUnlocked = sysData.isExamUnlocked === true;
-            isMidtermUnlocked = sysData.isMidtermUnlocked === true;
-            isFinalUnlocked = sysData.isFinalUnlocked === true;
-            requireExamAttendance = sysData.requireExamAttendance === true;
-            examMatrix = sysData.examMatrix || {}; 
-            globalReviewCode = sysData.reviewCode || "";
-            globalAnnouncement = sysData.announcement || "";
-            globalAnnouncementTime = sysData.announcementTime || "";
-            globalAttendanceConfig = sysData.attendance || {};
-            globalAbsenceMessage = sysData.absenceMessage || "";
+    // ===== TẢI DỮ LIỆU HỆ THỐNG (tối ưu tốc độ) =====
+    // Chia làm 2 tầng:
+    //  - getConfig  : siêu nhẹ (đọc 1 ô CaiDat) -> toggle, ma trận, thông báo, cấu hình điểm danh.
+    //                 Đủ để đăng nhập, điểm danh, báo vắng, học bù.
+    //  - getQuestions: nặng (3 ngân hàng đề) -> CHỈ tải khi thật sự cần vào làm bài,
+    //                 có cache localStorage theo dataVersion nên lần sau gần như tức thì.
+    const BANK_CACHE_KEY = 'eiuQuestionBanks';
+    const BANK_VER_KEY = 'eiuQuestionBanksVersion';
 
-            const cachedBefore = localStorage.getItem('cachedAnnouncement') || "";
-
-            if (globalAnnouncement.trim() !== "") {
-                document.getElementById('announcement-box').classList.replace('hidden', 'flex');
-                // Chỉ ghi lại DOM nếu nội dung thật sự khác bản cache đã hiện — tránh giật hình không cần thiết
-                if (globalAnnouncement !== cachedBefore) {
-                    document.getElementById('announcement-content').innerHTML = globalAnnouncement.replace(/\n/g, '<br>');
-                    document.getElementById('announcement-time').innerText = globalAnnouncementTime;
-                }
-                localStorage.setItem('cachedAnnouncement', globalAnnouncement);
-                localStorage.setItem('cachedAnnouncementTime', globalAnnouncementTime);
-            } else {
-                // Giảng viên đã tắt/xóa thông báo — ẩn đi và xóa cache
-                document.getElementById('announcement-box').classList.replace('flex', 'hidden');
-                localStorage.removeItem('cachedAnnouncement');
-                localStorage.removeItem('cachedAnnouncementTime');
+    function applyAnnouncement() {
+        const cachedBefore = localStorage.getItem('cachedAnnouncement') || "";
+        if (globalAnnouncement.trim() !== "") {
+            document.getElementById('announcement-box').classList.replace('hidden', 'flex');
+            if (globalAnnouncement !== cachedBefore) {
+                document.getElementById('announcement-content').innerHTML = globalAnnouncement.replace(/\n/g, '<br>');
+                document.getElementById('announcement-time').innerText = globalAnnouncementTime;
             }
-            window._systemDataReady = true;
-        } catch(e) { console.log("Lỗi tải data"); }
+            localStorage.setItem('cachedAnnouncement', globalAnnouncement);
+            localStorage.setItem('cachedAnnouncementTime', globalAnnouncementTime);
+        } else {
+            document.getElementById('announcement-box').classList.replace('flex', 'hidden');
+            localStorage.removeItem('cachedAnnouncement');
+            localStorage.removeItem('cachedAnnouncementTime');
+        }
+    }
+
+    function applyBanks(d) {
+        questionBank = d.questions || [];
+        midtermBank = d.midtermBank || [];
+        finalBank = d.finalBank || [];
+        window._systemDataReady = true;
+    }
+
+    // Chạy ngay khi mở trang — chỉ gọi endpoint nhẹ, không kéo ngân hàng đề.
+    async function bootstrapSystem() {
+        try {
+            const res = await fetch(CONFIG.GOOGLE_URL + "?action=getConfig");
+            const d = await res.json();
+            isExamUnlocked = d.isExamUnlocked === true;
+            isMidtermUnlocked = d.isMidtermUnlocked === true;
+            isFinalUnlocked = d.isFinalUnlocked === true;
+            requireExamAttendance = d.requireExamAttendance === true;
+            examMatrix = d.examMatrix || {};
+            globalReviewCode = d.reviewCode || "";
+            globalAnnouncement = d.announcement || "";
+            globalAnnouncementTime = d.announcementTime || "";
+            globalAttendanceConfig = d.attendance || {};
+            globalAbsenceMessage = d.absenceMessage || "";
+            window._dataVersion = d.dataVersion || "";
+            window._configReady = true;
+            applyAnnouncement();
+
+            // Nếu ngân hàng đề đã có sẵn trong máy và đúng phiên bản -> dùng luôn, không gọi mạng.
+            try {
+                const cachedVer = localStorage.getItem(BANK_VER_KEY);
+                if (cachedVer && cachedVer === window._dataVersion) {
+                    const raw = localStorage.getItem(BANK_CACHE_KEY);
+                    if (raw) applyBanks(JSON.parse(raw));
+                }
+            } catch (e2) { /* cache hỏng -> bỏ qua, sẽ tải lại khi cần */ }
+        } catch (e) {
+            console.log("Không tải được cấu hình hệ thống:", e);
+        }
+    }
+
+    // Chỉ gọi khi thật sự cần ngân hàng đề (vào luyện tập / thi / màn hình Admin).
+    async function ensureQuestionBank() {
+        if (window._systemDataReady) return true;
+        if (window._bankLoading) return window._bankLoading;
+        window._bankLoading = (async () => {
+            showLoading("Đang tải ngân hàng đề...");
+            try {
+                const res = await fetch(CONFIG.GOOGLE_URL + "?action=getQuestions");
+                const d = await res.json();
+                applyBanks(d);
+                try {
+                    const ver = d.dataVersion || window._dataVersion || "";
+                    localStorage.setItem(BANK_CACHE_KEY, JSON.stringify({
+                        questions: questionBank, midtermBank: midtermBank, finalBank: finalBank
+                    }));
+                    localStorage.setItem(BANK_VER_KEY, ver);
+                    window._dataVersion = ver;
+                } catch (e3) { /* localStorage đầy -> vẫn chạy được, chỉ mất cache */ }
+                return true;
+            } catch (e) {
+                showToast("Không tải được ngân hàng đề. Vui lòng kiểm tra kết nối và thử lại.", 'error');
+                return false;
+            } finally {
+                hideLoading();
+                window._bankLoading = null;
+            }
+        })();
+        return window._bankLoading;
     }
 
     async function handleLogin() {
@@ -889,14 +945,14 @@
         const password = document.getElementById('login-password').value.trim();
         if (!account || !password) return showToast("Vui lòng điền đủ Tài khoản và Mật khẩu.");
 
-        // Nếu dữ liệu hệ thống (câu hỏi, cấu hình...) chưa tải xong kịp (do Apps Script cold-start
-        // chậm), chờ thêm một chút trước khi vào — thường đã tải xong ngay trong lúc gõ tài khoản.
-        if (!window._systemDataReady) {
-            showLoading("Đang hoàn tất tải dữ liệu...");
+        // Đăng nhập KHÔNG cần ngân hàng đề -> không chờ gì cả.
+        // Chỉ chờ cấu hình nhẹ (getConfig) nếu nó chưa kịp về, tối đa 3 giây.
+        if (!window._configReady) {
+            showLoading("Đang kết nối hệ thống...");
             let waited = 0;
-            while (!window._systemDataReady && waited < 10000) {
-                await new Promise(r => setTimeout(r, 200));
-                waited += 200;
+            while (!window._configReady && waited < 3000) {
+                await new Promise(r => setTimeout(r, 100));
+                waited += 100;
             }
             hideLoading();
         }
@@ -919,6 +975,8 @@
             if (result.isAdmin) {
                 // --- Đăng nhập Admin: lưu token phiên, gọi getAdminData kèm token ---
                 adminToken = result.adminToken;
+                // Màn hình Admin cần ngân hàng đề để hiển thị/chỉnh sửa -> tải tại đây.
+                await ensureQuestionBank();
                 showLoading("Admin Dashboard...");
                 try {
                     let dashRes = await fetch(CONFIG.GOOGLE_URL + "?action=getAdminData&token=" + encodeURIComponent(adminToken));
@@ -963,7 +1021,7 @@
             document.getElementById('mode-screen').classList.remove('hidden');
             document.getElementById('student-welcome').innerText = `Chào bạn, ${result.name}`;
             document.getElementById('student-class').innerText = `Lớp: ${result.className}`;
-            updateStudentChapterSelect();
+            // Danh sách chương chỉ dựng khi SV bấm vào Luyện tập (ngân hàng đề tải sau).
             populateAbsenceSessionSelect();
             populateMakeupSessionSelect();
         } catch(e) {
@@ -972,9 +1030,14 @@
         }
     }
     // 3. LOGIC SINH VIÊN
-    function showChapterSelector() {
+    async function showChapterSelector() {
+        const panel = document.getElementById('chapter-selector');
+        // Đang mở sẵn -> chỉ cần đóng lại, không tải gì.
+        if (!panel.classList.contains('hidden')) { panel.classList.add('hidden'); return; }
+        if (!(await ensureQuestionBank())) return;
         if (questionBank.length === 0) return showToast("Hệ thống chưa có ngân hàng luyện tập.");
-        document.getElementById('chapter-selector').classList.toggle('hidden');
+        updateStudentChapterSelect();
+        panel.classList.remove('hidden');
     }
 
     function updateStudentChapterSelect() {
@@ -1253,6 +1316,9 @@ async function startMode(mode) {
                 return showToast("Lỗi kết nối. Vui lòng thử lại.");
             }
         }
+
+        // Tới đây mới thật sự cần ngân hàng đề.
+        if (!(await ensureQuestionBank())) return;
 
         if (mode === 'midterm') currentTest = [...midtermBank].slice(0, 20);
         else if (mode === 'final') currentTest = [...finalBank].slice(0, 20);
