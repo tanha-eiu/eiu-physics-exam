@@ -614,7 +614,7 @@
 <script>
     // THẦY DÁN LINK WEB APP CỦA GOOGLE APPS SCRIPT VÀO ĐÂY
     const CONFIG = {
-        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbzEM0FnoNBFWABVvz8hjxxfwmUpu359dwV_pkAbqL0ol2aK0ybMGQWFfgTogU3aZy6iJw/exec"
+        GOOGLE_URL: "https://script.google.com/macros/s/AKfycbx16SJf4HsQYkBuLPdRiyxnCmDMHr8Pv9_mX3dmbB9mHHUSHooVyYfcjJzQyglDnNPTiQ/exec"
     };
 
     let currentUser = {}, questionBank = [], midtermBank = [], finalBank = [];
@@ -763,7 +763,10 @@
         // Ẩn màn hình loading NGAY LẬP TỨC — không chờ Apps Script (có thể mất vài giây do cold-start).
         // Form đăng nhập hiện ra ngay; dữ liệu hệ thống được tải ngầm phía sau.
         hideLoading();
-        fetchSystemDataInBackground();
+        // Tải CONFIG nhẹ (không kèm ngân hàng đề) để sẵn sàng đăng nhập ngay; đề tải ngầm ngay sau đó.
+        // Chỉ tải CONFIG nhẹ lúc mở trang. KHÔNG tải đề ở đây để không có gì chạy nền
+        // cạnh tranh với thao tác đăng nhập của sinh viên. Đề được tải SAU khi đã đăng nhập.
+        _configPromise = fetchSystemConfigInBackground();
     }
 
     function showCachedAnnouncement() {
@@ -776,13 +779,15 @@
         }
     }
 
-    async function fetchSystemDataInBackground() {
+    let _configPromise = null;
+    let _banksPromise = null;
+
+    // Tải CONFIG nhẹ (flags, examMatrix, thông báo, cấu hình điểm danh) — KHÔNG kèm ngân hàng đề.
+    // Đây là request vừa "đánh thức" Apps Script (cold-start) vừa đủ nhẹ để không chặn đăng nhập.
+    async function fetchSystemConfigInBackground() {
         try {
-            let sysRes = await fetch(CONFIG.GOOGLE_URL + "?action=getSystemData");
+            let sysRes = await fetch(CONFIG.GOOGLE_URL + "?action=getSystemData&light=1");
             let sysData = await sysRes.json();
-            questionBank = sysData.questions || [];
-            midtermBank = sysData.midtermBank || [];
-            finalBank = sysData.finalBank || [];
             isExamUnlocked = sysData.isExamUnlocked === true;
             isMidtermUnlocked = sysData.isMidtermUnlocked === true;
             isFinalUnlocked = sysData.isFinalUnlocked === true;
@@ -812,25 +817,39 @@
                 localStorage.removeItem('cachedAnnouncementTime');
             }
             window._systemDataReady = true;
-        } catch(e) { console.log("Lỗi tải data"); }
+        } catch(e) { console.log("Lỗi tải config"); }
+    }
+
+    // Tải NGÂN HÀNG ĐỀ riêng (questions/midterm/final) — chạy ngầm, chỉ cần khi làm bài hoặc vào Admin.
+    async function fetchQuestionBanks() {
+        try {
+            let res = await fetch(CONFIG.GOOGLE_URL + "?action=getQuestionBanks");
+            let d = await res.json();
+            questionBank = d.questions || [];
+            midtermBank = d.midtermBank || [];
+            finalBank = d.finalBank || [];
+            window._banksReady = true;
+            // Nếu SV đang ở màn chọn chế độ, render lại nút chương khi đề vừa về
+            if (!document.getElementById('mode-screen').classList.contains('hidden')) updateStudentChapterSelect();
+            // Nếu Admin đang mở dashboard, cập nhật số lượng đề
+            if (!document.getElementById('admin-screen').classList.contains('hidden')) {
+                document.getElementById('midterm-status').innerText = `(${midtermBank.length})`;
+                document.getElementById('final-status').innerText = `(${finalBank.length})`;
+                updateAdminUI(); // Đề về sau khi dashboard đã mở → render lại bảng đề + ma trận + số lượng
+            }
+        } catch(e) { console.log("Lỗi tải ngân hàng đề"); }
+    }
+
+    // Đảm bảo ngân hàng đề đã (đang) được tải — trả về Promise để nơi gọi await khi cần.
+    function ensureBanksLoaded() {
+        if (!_banksPromise) _banksPromise = fetchQuestionBanks();
+        return _banksPromise;
     }
 
     async function handleLogin() {
         const account = document.getElementById('login-account').value.trim();
         const password = document.getElementById('login-password').value.trim();
         if (!account || !password) return alert("Vui lòng điền đủ Tài khoản và Mật khẩu.");
-
-        // Nếu dữ liệu hệ thống (câu hỏi, cấu hình...) chưa tải xong kịp (do Apps Script cold-start
-        // chậm), chờ thêm một chút trước khi vào — thường đã tải xong ngay trong lúc gõ tài khoản.
-        if (!window._systemDataReady) {
-            showLoading("Đang hoàn tất tải dữ liệu...");
-            let waited = 0;
-            while (!window._systemDataReady && waited < 10000) {
-                await new Promise(r => setTimeout(r, 200));
-                waited += 200;
-            }
-            hideLoading();
-        }
 
         // Luôn xác thực qua server (Apps Script) — không có mật khẩu nào lưu sẵn trong code phía trình duyệt.
         // Server tự phân biệt tài khoản Admin hay Sinh viên dựa trên dữ liệu trong Google Sheet.
@@ -848,22 +867,22 @@
             }
 
             if (result.isAdmin) {
-                // --- Đăng nhập Admin: lưu token phiên, gọi getAdminData kèm token ---
+                // --- Đăng nhập Admin: dữ liệu dashboard + ngân hàng đề đã GỘP sẵn trong response login (1 lượt gọi) ---
                 adminToken = result.adminToken;
                 showLoading("Admin Dashboard...");
                 try {
-                    let dashRes = await fetch(CONFIG.GOOGLE_URL + "?action=getAdminData&token=" + encodeURIComponent(adminToken));
-                    let dashData = await dashRes.json();
-                    if (dashData.success === false) {
-                        hideLoading();
-                        return alert(dashData.message || "Không thể tải dữ liệu Admin.");
-                    }
-                    globalPracticeData = dashData.practice || [];
-                    globalExamData = dashData.exam || [];
-                    globalOnThiData = dashData.onthi || [];
-                    globalAttendanceData = dashData.attendance || [];
-                    globalStudentRoster = dashData.roster || [];
-                    globalAbsenceData = dashData.absence || [];
+                    // Dùng thẳng dữ liệu kèm theo — KHÔNG gọi thêm getQuestionBanks/getAdminData
+                    questionBank = result.questions || [];
+                    midtermBank = result.midtermBank || [];
+                    finalBank = result.finalBank || [];
+                    window._banksReady = true;
+                    _banksPromise = Promise.resolve(); // đề đã có sẵn → ensureBanksLoaded() về sau không tải lại
+                    globalPracticeData = result.practice || [];
+                    globalExamData = result.exam || [];
+                    globalOnThiData = result.onthi || [];
+                    globalAttendanceData = result.attendance || [];
+                    globalStudentRoster = result.roster || [];
+                    globalAbsenceData = result.absence || [];
                     document.getElementById('login-screen').classList.add('hidden');
                     document.getElementById('login-screen-bg').classList.add('hidden');
                     document.getElementById('login-bg-fixed').classList.add('hidden');
@@ -897,14 +916,17 @@
             updateStudentChapterSelect();
             populateAbsenceSessionSelect();
             populateMakeupSessionSelect();
+            ensureBanksLoaded(); // Tải ngân hàng đề NGẦM sau khi đã vào trong — KHÔNG làm chậm đăng nhập
         } catch(e) {
             hideLoading();
             alert("Lỗi kết nối hệ thống. Vui lòng thử lại.");
         }
     }
     // 3. LOGIC SINH VIÊN
-    function showChapterSelector() {
+    async function showChapterSelector() {
+        if (!window._banksReady) { showLoading("Đang tải ngân hàng câu hỏi..."); await ensureBanksLoaded(); hideLoading(); }
         if (questionBank.length === 0) return alert("Hệ thống chưa có ngân hàng luyện tập.");
+        updateStudentChapterSelect();
         document.getElementById('chapter-selector').classList.toggle('hidden');
     }
 
@@ -1185,6 +1207,8 @@ async function startMode(mode) {
             }
         }
 
+        if (!window._banksReady) { showLoading("Đang tải đề..."); await ensureBanksLoaded(); hideLoading(); }
+
         if (mode === 'midterm') currentTest = [...midtermBank].slice(0, 20);
         else if (mode === 'final') currentTest = [...finalBank].slice(0, 20);
         else if (mode === 'exam') {
@@ -1306,6 +1330,13 @@ function submitTest() {
     }
 
     async function activateAll() {
+        // An toàn: không cho lưu khi ngân hàng đề chưa tải xong (tránh ghi đè rỗng làm MẤT đề)
+        if (!window._banksReady) {
+            showLoading("Đang tải ngân hàng đề trước khi lưu...");
+            await ensureBanksLoaded();
+            hideLoading();
+            if (!window._banksReady) { alert("Chưa tải được ngân hàng đề — hãy thử lại trước khi lưu để tránh ghi đè mất dữ liệu."); return; }
+        }
         let tempMatrix = {};
         document.querySelectorAll('.matrix-input').forEach(inp => { if(inp.value > 0) tempMatrix[inp.dataset.ch] = parseInt(inp.value); });
         examMatrix = tempMatrix;
