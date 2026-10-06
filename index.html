@@ -750,6 +750,26 @@
     function showLoading(text) { document.getElementById('loading-text').innerText = text; document.getElementById('loading-overlay').classList.replace('hidden', 'flex'); }
     function hideLoading() { document.getElementById('loading-overlay').classList.replace('flex', 'hidden'); }
 
+    // Gọi fetch và TỰ THỬ LẠI khi gặp lỗi chập chờn của Apps Script
+    // (URL tạm googleusercontent trả 404, mạng rớt, hoặc trả về không phải JSON).
+    // CHỈ dùng cho thao tác CHỈ ĐỌC (đăng nhập, tải config/đề) — KHÔNG dùng cho điểm danh/nộp bài
+    // vì thử lại có thể ghi trùng. Trả về JSON đã parse; thất bại cả 3 lần mới ném lỗi.
+    async function fetchJSONRetry(url, options, tries = 3) {
+        let lastErr;
+        for (let i = 0; i < tries; i++) {
+            try {
+                const res = await fetch(url, options);
+                if (!res.ok) throw new Error("HTTP " + res.status);
+                return await res.json();
+            } catch (e) {
+                lastErr = e;
+                if (i < tries - 1) await new Promise(r => setTimeout(r, 600 * (i + 1))); // nghỉ tăng dần: 0.6s, 1.2s
+            }
+        }
+        throw lastErr;
+    }
+
+
     window.onload = async function() {
         if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
@@ -786,8 +806,7 @@
     // Đây là request vừa "đánh thức" Apps Script (cold-start) vừa đủ nhẹ để không chặn đăng nhập.
     async function fetchSystemConfigInBackground() {
         try {
-            let sysRes = await fetch(CONFIG.GOOGLE_URL + "?action=getSystemData&light=1");
-            let sysData = await sysRes.json();
+            let sysData = await fetchJSONRetry(CONFIG.GOOGLE_URL + "?action=getSystemData&light=1");
             isExamUnlocked = sysData.isExamUnlocked === true;
             isMidtermUnlocked = sysData.isMidtermUnlocked === true;
             isFinalUnlocked = sysData.isFinalUnlocked === true;
@@ -823,8 +842,7 @@
     // Tải NGÂN HÀNG ĐỀ riêng (questions/midterm/final) — chạy ngầm, chỉ cần khi làm bài hoặc vào Admin.
     async function fetchQuestionBanks() {
         try {
-            let res = await fetch(CONFIG.GOOGLE_URL + "?action=getQuestionBanks");
-            let d = await res.json();
+            let d = await fetchJSONRetry(CONFIG.GOOGLE_URL + "?action=getQuestionBanks");
             questionBank = d.questions || [];
             midtermBank = d.midtermBank || [];
             finalBank = d.finalBank || [];
@@ -855,11 +873,10 @@
         // Server tự phân biệt tài khoản Admin hay Sinh viên dựa trên dữ liệu trong Google Sheet.
         showLoading("Đang xác thực...");
         try {
-            const res = await fetch(CONFIG.GOOGLE_URL, {
+            const result = await fetchJSONRetry(CONFIG.GOOGLE_URL, {
                 method: 'POST',
                 body: JSON.stringify({ action: "login", account, password })
             });
-            const result = await res.json();
 
             if (!result.success) {
                 hideLoading();
